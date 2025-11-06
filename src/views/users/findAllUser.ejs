@@ -7,20 +7,18 @@
       <th>Address</th>
       <th>Action</th>
     </tr>
-    <% for (let i = 0; i < dataList.length; i++) { %>
+
+    <% for(let i=0; i < datalist.length; i++) { %>
     <tr>
-      <td><%= dataList[i].email %></td>
-      <td><%= dataList[i].firstName %></td>
-      <td><%= dataList[i].lastName %></td>
-      <td><%= dataList[i].address %></td>
+      <td><%= datalist[i].email %></td>
+      <td><%= datalist[i].firstName %></td>
+      <td><%= datalist[i].lastName %></td>
+      <td><%= datalist[i].address %></td>
+
       <td>
-        <a href="/edit-user?id=<%= dataList[i].id %>">Edit</a>
+        <a href="/edit-crud?id=<%= datalist[i].id %>">Edit</a>
         ||
-        <a
-          href="/delete-user?id=<%= dataList[i].id %>"
-          onclick="return confirm('Are you sure to delete this user?');"
-          >Delete</a
-        >
+        <a href="/delete-crud?id=<%= datalist[i].id %>">Delete</a>
       </td>
     </tr>
     <% } %>

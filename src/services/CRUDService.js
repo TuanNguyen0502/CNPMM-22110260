@@ -20,7 +20,7 @@ let createNewUser = async (data) => {
         gender: data.gender === "1" ? true : false,
         roleId: data.roleId,
         image: null,
-        positionId: null, 
+        positionId: null,
       });
       resolve("OK create a new user successful");
     } catch (e) {
@@ -84,11 +84,9 @@ let updateUser = (data) => {
         user.lastName = data.lastName;
         user.address = data.address;
         await user.save();
-        let allUsers = await db.User.findAll();
-        resolve(allUsers);
-      } else {
-        resolve();
       }
+      let allusers = await db.User.findAll({ raw: true });
+      resolve(allusers);
     } catch (e) {
       reject(e);
     }

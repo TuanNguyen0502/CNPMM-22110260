@@ -23,7 +23,7 @@ let getCRUD = (req, res) => {
 let getFindAllCrud = async (req, res) => {
   let data = await CRUDService.getAllUsers();
   return res.render("users/findAllUser.ejs", {
-    dataList: JSON.stringify(data),
+    datalist: data,
   });
 };
 
@@ -53,9 +53,9 @@ let getEditCRUD = async (req, res) => {
 
 let putCRUD = async (req, res) => {
   let data = req.body;
-  let allUsers = await CRUDService.updateUserData(data);
-  return res.render("users/findAllUsers.ejs", {
-    dataList: JSON.stringify(allUsers),
+  let data1 = await CRUDService.updateUser(data);
+  return res.render("users/findAllUser.ejs", {
+    datalist: data1,
   });
 };
 
