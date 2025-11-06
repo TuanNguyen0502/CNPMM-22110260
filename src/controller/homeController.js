@@ -22,15 +22,21 @@ let getCRUD = (req, res) => {
 
 let getFindAllCrud = async (req, res) => {
   let data = await CRUDService.getAllUsers();
-  return res.render("users/findAllUsers.ejs", {
-    data: JSON.stringify(data),
+  return res.render("users/findAllUser.ejs", {
+    dataList: JSON.stringify(data),
   });
 };
 
 let postCRUD = async (req, res) => {
-  let message = await CRUDService.createNewUser(req.body);
-  console.log(message);
-  return res.send("post crud from server");
+  try {
+    let message = await CRUDService.createNewUser(req.body);
+    console.log(message);
+    return res.send("Post crud to server");
+  } catch (e) {
+    console.log("---!! POSTCRUD CONTROLLER FAILED !!---");
+    console.log(e);
+    return res.status(500).send("Server error: Could not create user.");
+  }
 };
 
 let getEditCRUD = async (req, res) => {

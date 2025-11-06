@@ -9,6 +9,7 @@ let createNewUser = async (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       let hashPasswordFromBcrypt = await hashUserPassword(data.password);
+
       await db.User.create({
         email: data.email,
         password: hashPasswordFromBcrypt,
@@ -18,16 +19,20 @@ let createNewUser = async (data) => {
         phoneNumber: data.phoneNumber,
         gender: data.gender === "1" ? true : false,
         roleId: data.roleId,
+        image: null,
+        positionId: null, 
       });
-      resolve("OK! Create a new user succeed!");
+      resolve("OK create a new user successful");
     } catch (e) {
-      reject(e);
+      console.log("---!!! ERROR in createNewUser service !!!---");
+      console.log(e);
+      reject(e); // Then reject
     }
   });
 };
 
 let hashUserPassword = (password) => {
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     try {
       let hashPassword = bcrypt.hashSync(password, salt);
       resolve(hashPassword);
@@ -40,7 +45,7 @@ let hashUserPassword = (password) => {
 let getAllUsers = () => {
   return new Promise(async (resolve, reject) => {
     try {
-      let users = db.User.findAll({
+      let users = await db.User.findAll({
         raw: true,
       });
       resolve(users);
