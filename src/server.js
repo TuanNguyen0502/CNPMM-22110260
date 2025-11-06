@@ -2,7 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import configureViewEngine from './config/viewEngine.js';
 import initWebRoutes from './route/web';
-import connectDB from './config/connectDB.js';
+import connectDB from './config/configdb.js';
 require('dotenv').config(); // Load environment variables from .env file
 
 let app = express();
