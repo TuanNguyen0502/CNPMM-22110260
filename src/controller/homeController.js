@@ -43,8 +43,8 @@ let getEditCRUD = async (req, res) => {
   let userId = req.query.id;
   if (userId) {
     let userData = await CRUDService.getUserInfoById(userId);
-    return res.render("users/editUser.ejs", {
-      data: JSON.stringify(userData),
+    return res.render("users/updateUser.ejs", {
+      data: userData,
     });
   } else {
     return res.send("User not found!");
