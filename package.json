@@ -15,5 +15,18 @@
   "bugs": {
     "url": "https://github.com/TuanNguyen0502/CNPMM-22110260/issues"
   },
-  "homepage": "https://github.com/TuanNguyen0502/CNPMM-22110260#readme"
+  "homepage": "https://github.com/TuanNguyen0502/CNPMM-22110260#readme",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/node": "^7.28.0",
+    "@babel/preset-env": "^7.28.5",
+    "nodemon": "^3.1.10"
+  }
 }
