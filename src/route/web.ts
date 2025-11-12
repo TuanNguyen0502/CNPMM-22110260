@@ -1,9 +1,9 @@
-import express from "express";
+import express, { Express, Router } from "express";
 import homeController from "../controller/homeController";
 
-let router = express.Router(); // Use express router
+let router: Router = express.Router(); // Use express router
 
-let initWebRoutes = (app) => {
+let initWebRoutes = (app: Express) => {
   router.get("/", homeController.getHomePage);
   router.get("/home", homeController.getHomePage);
   router.get("/about", homeController.getAboutPage);
@@ -17,4 +17,4 @@ let initWebRoutes = (app) => {
   return app.use("/", router);
 };
 
-module.exports = initWebRoutes;
+export default initWebRoutes;

@@ -1,7 +1,8 @@
-import db from "../models/user.js";
+import { Request, Response } from "express";
+import db from "../models/index";
 import CRUDService from "../services/CRUDService";
 
-let getHomePage = async (req, res) => {
+let getHomePage = async (req: Request, res: Response) => {
   try {
     let data = await db.User.findAll();
     return res.render("homePage.ejs", {
@@ -12,22 +13,22 @@ let getHomePage = async (req, res) => {
   }
 };
 
-let getAboutPage = (req, res) => {
+let getAboutPage = (req: Request, res: Response) => {
   return res.render("test/about.ejs");
 };
 
-let getCRUD = (req, res) => {
+let getCRUD = (req: Request, res: Response) => {
   return res.render("crud.ejs");
 };
 
-let getFindAllCrud = async (req, res) => {
+let getFindAllCrud = async (req: Request, res: Response) => {
   let data = await CRUDService.getAllUsers();
   return res.render("users/findAllUser.ejs", {
     datalist: data,
   });
 };
 
-let postCRUD = async (req, res) => {
+let postCRUD = async (req: Request, res: Response) => {
   try {
     let message = await CRUDService.createNewUser(req.body);
     console.log(message);
@@ -39,10 +40,10 @@ let postCRUD = async (req, res) => {
   }
 };
 
-let getEditCRUD = async (req, res) => {
+let getEditCRUD = async (req: Request, res: Response) => {
   let userId = req.query.id;
   if (userId) {
-    let userData = await CRUDService.getUserInfoById(userId);
+    let userData = await CRUDService.getUserInfoById(Number(userId));
     return res.render("users/updateUser.ejs", {
       data: userData,
     });
@@ -51,7 +52,7 @@ let getEditCRUD = async (req, res) => {
   }
 };
 
-let putCRUD = async (req, res) => {
+let putCRUD = async (req: Request, res: Response) => {
   let data = req.body;
   let data1 = await CRUDService.updateUser(data);
   return res.render("users/findAllUser.ejs", {
@@ -59,17 +60,17 @@ let putCRUD = async (req, res) => {
   });
 };
 
-let deleteCRUD = async (req, res) => {
+let deleteCRUD = async (req: Request, res: Response) => {
   let userId = req.query.id;
   if (userId) {
-    await CRUDService.deleteUserById(userId);
+    await CRUDService.deleteUserById(Number(userId));
     return res.send("Delete user successfully!");
   } else {
     return res.send("User not found!");
   }
 };
 
-module.exports = {
+export default {
   getHomePage,
   getAboutPage,
   getCRUD,

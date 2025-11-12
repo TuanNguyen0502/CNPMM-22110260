@@ -1,14 +1,25 @@
 import bcrypt from "bcryptjs";
-import db from "../models/index.js";
-import { where } from "sequelize";
-import { raw } from "body-parser";
+import db from "../models/index";
+
+interface UserCreationAttributes {
+  email: string;
+  password?: string;
+  firstName: string;
+  lastName: string;
+  address: string;
+  phoneNumber: string;
+  gender: "0" | "1";
+  roleId: string;
+}
 
 const salt = bcrypt.genSaltSync(10);
 
-let createNewUser = async (data) => {
+let createNewUser = async (data: UserCreationAttributes) => {
   return new Promise(async (resolve, reject) => {
     try {
-      let hashPasswordFromBcrypt = await hashUserPassword(data.password);
+      let hashPasswordFromBcrypt = await hashUserPassword(
+        data.password as string
+      );
 
       await db.User.create({
         email: data.email,
@@ -31,7 +42,7 @@ let createNewUser = async (data) => {
   });
 };
 
-let hashUserPassword = (password) => {
+let hashUserPassword = (password: string) => {
   return new Promise((resolve, reject) => {
     try {
       let hashPassword = bcrypt.hashSync(password, salt);
@@ -55,7 +66,7 @@ let getAllUsers = () => {
   });
 };
 
-let getUserInfoById = (userId) => {
+let getUserInfoById = (userId: number) => {
   return new Promise(async (resolve, reject) => {
     try {
       let user = await db.User.findOne({
@@ -73,7 +84,7 @@ let getUserInfoById = (userId) => {
   });
 };
 
-let updateUser = (data) => {
+let updateUser = (data: UserCreationAttributes & { id: number }) => {
   return new Promise(async (resolve, reject) => {
     try {
       let user = await db.User.findOne({
@@ -93,7 +104,7 @@ let updateUser = (data) => {
   });
 };
 
-let deleteUserById = (userId) => {
+let deleteUserById = (userId: number) => {
   return new Promise(async (resolve, reject) => {
     try {
       let user = await db.User.findOne({
@@ -102,17 +113,17 @@ let deleteUserById = (userId) => {
       if (user) {
         await user.destroy();
       }
-      resolve();
+      resolve("Delete user success");
     } catch (e) {
       reject(e);
     }
   });
 };
 
-module.exports = {
-  createNewUser: createNewUser,
-  getAllUsers: getAllUsers,
-  getUserInfoById: getUserInfoById,
-  updateUser: updateUser,
-  deleteUserById: deleteUserById,
+export default {
+  createNewUser,
+  getAllUsers,
+  getUserInfoById,
+  updateUser,
+  deleteUserById,
 };

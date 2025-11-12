@@ -1,10 +1,10 @@
-import express from "express";
+import express, { Express } from "express";
 
-let configureViewEngine = (app) => {
+let configureViewEngine = (app: Express) => {
   app.use(express.static("./src/public")); // For serving static files
 
   app.set("view engine", "ejs"); // Set EJS as the templating engine
   app.set("views", "./src/views"); // Set the views directory
 };
 
-module.exports = configureViewEngine;
+export default configureViewEngine;
