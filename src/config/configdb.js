@@ -1,14 +1,17 @@
-import mongoose from "mongoose";
+import { Sequelize } from "sequelize";
 
-const MONGO_URI = "mongodb://127.0.0.1:27017/node_fulltask_db";
+const sequelize = new Sequelize("cnpmm_dev", "root", "root", {
+  host: "localhost",
+  dialect: "mysql",
+  logging: false,
+});
 
-const connectDB = async () => {
+let connectDB = async () => {
   try {
-    await mongoose.connect(MONGO_URI);
-    console.log("MongoDB connection has been established successfully.");
+    await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
   } catch (error) {
-    console.error("Unable to connect to the MongoDB database:", error);
-    process.exit(1); // Exit process with failure
+    console.error("Unable to connect to the database:", error);
   }
 };
 

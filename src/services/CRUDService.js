@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import User from "../models/user";
+import db from "../models/index.js";
 import { where } from "sequelize";
 import { raw } from "body-parser";
 
@@ -10,7 +10,7 @@ let createNewUser = async (data) => {
     try {
       let hashPasswordFromBcrypt = await hashUserPassword(data.password);
 
-      await User.create({
+      await db.User.create({
         email: data.email,
         password: hashPasswordFromBcrypt,
         firstName: data.firstName,
@@ -45,7 +45,9 @@ let hashUserPassword = (password) => {
 let getAllUsers = () => {
   return new Promise(async (resolve, reject) => {
     try {
-      let users = await User.find({});
+      let users = await db.User.findAll({
+        raw: true,
+      });
       resolve(users);
     } catch (e) {
       reject(e);
@@ -56,7 +58,10 @@ let getAllUsers = () => {
 let getUserInfoById = (userId) => {
   return new Promise(async (resolve, reject) => {
     try {
-      let user = await User.findById(userId);
+      let user = await db.User.findOne({
+        where: { id: userId },
+        raw: true,
+      });
       if (user) {
         resolve(user);
       } else {
@@ -71,13 +76,16 @@ let getUserInfoById = (userId) => {
 let updateUser = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
-      await User.findByIdAndUpdate(data.id, {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        address: data.address,
+      let user = await db.User.findOne({
+        where: { id: data.id },
       });
-
-      let allusers = await User.find({});
+      if (user) {
+        user.firstName = data.firstName;
+        user.lastName = data.lastName;
+        user.address = data.address;
+        await user.save();
+      }
+      let allusers = await db.User.findAll({ raw: true });
       resolve(allusers);
     } catch (e) {
       reject(e);
@@ -88,7 +96,12 @@ let updateUser = (data) => {
 let deleteUserById = (userId) => {
   return new Promise(async (resolve, reject) => {
     try {
-      await User.findByIdAndDelete(userId);
+      let user = await db.User.findOne({
+        where: { id: userId },
+      });
+      if (user) {
+        await user.destroy();
+      }
       resolve();
     } catch (e) {
       reject(e);

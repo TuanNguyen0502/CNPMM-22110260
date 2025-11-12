@@ -1,30 +1,31 @@
-import mongoose from "mongoose";
+"use strict";
 
-const userSchema = new mongoose.Schema(
-  {
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-    firstName: { type: String },
-    lastName: { type: String },
-    address: { type: String },
-    phoneNumber: { type: String },
-    gender: { type: Boolean },
-    image: { type: String },
-    roleId: { type: String },
-    positionId: { type: String },
-  },
-  {
-    timestamps: true, // This automatically adds createdAt and updatedAt
+const { Model } = require("sequelize");
+
+module.exports = (sequelize, DataTypes) => {
+  class User extends Model {
+    static associate(models) {
+      // define association here
+    }
   }
-);
-
-const User = mongoose.model("User", userSchema);
-
-module.exports = User;
+  User.init(
+    {
+      email: DataTypes.STRING,
+      password: DataTypes.STRING,
+      firstName: DataTypes.STRING,
+      lastName: DataTypes.STRING,
+      address: DataTypes.STRING,
+      phoneNumber: DataTypes.STRING,
+      gender: DataTypes.BOOLEAN,
+      image: DataTypes.STRING,
+      roleId: DataTypes.STRING,
+      positionId: DataTypes.STRING,
+    },
+    {
+      sequelize,
+      modelName: "User",
+      tableName: 'users'
+    }
+  );
+  return User;
+};
