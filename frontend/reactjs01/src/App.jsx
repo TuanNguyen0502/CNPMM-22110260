@@ -6,47 +6,52 @@ import { AuthContext } from "./components/context/auth.context";
 import { Spin } from "antd";
 
 function App() {
-
   const { setAuth, appLoading, setAppLoading } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchAccount = async () => {
       setAppLoading(true);
-      const res = await axios.get('/v1/api/user');
+      const res = await axios.get("/v1/api/user");
       if (res && !res.message) {
         setAuth({
           isAuthenticated: true,
           user: {
             email: res.email,
-            name: res.name
-          }
-        })
+            name: res.name,
+          },
+        });
       }
       setAppLoading(false);
-    }
+    };
 
-    fetchAccount();
-  }, [])
+    if (localStorage.getItem("access_token")) {
+      fetchAccount();
+    } else {
+      setAppLoading(false);
+    }
+  }, []);
 
   return (
     <div>
-      {appLoading === true ?
-        <div style={{
-          position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)"
-        }}>
+      {appLoading === true ? (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
           <Spin />
         </div>
-        :
+      ) : (
         <>
           <Header />
           <Outlet />
         </>
-      }
+      )}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

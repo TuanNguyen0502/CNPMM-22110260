@@ -31,7 +31,7 @@ const Header = () => {
       label: `Welcome ${auth?.user?.email ?? ""}`,
       key: "SubMenu",
       icon: <SettingOutlined />,
-      Children: [
+      children: [
         ...(auth.isAuthenticated
           ? [
               {
