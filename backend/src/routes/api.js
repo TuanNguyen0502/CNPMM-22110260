@@ -1,25 +1,47 @@
 const express = require("express");
+const { validate } = require("express-validation");
 const {
   createUser,
   handleLogin,
   getUser,
   getAccount,
 } = require("../controllers/userController");
+
 const auth = require("../middleware/auth");
 const delay = require("../middleware/delay");
+const {
+  registerValidation,
+  loginValidation,
+} = require("../middleware/validation");
+const { apiLimiter, loginLimiter } = require("../middleware/limiter");
+const { checkAdmin } = require("../middleware/role");
 
 const routerAPI = express.Router();
 
+// 1. Áp dụng Authentication cho toàn bộ router (trừ whitelist định nghĩa trong auth.js)
 routerAPI.use(auth);
+
+// 2. Áp dụng Rate Limiting chung cho toàn bộ API (Tuỳ chọn)
+routerAPI.use(apiLimiter);
 
 routerAPI.get("/", (req, res) => {
   return res.status(200).json({ message: "API is working" });
 });
 
-routerAPI.post("/register", createUser);
-routerAPI.post("/login", handleLogin);
+// API Đăng ký: Thêm Validation
+routerAPI.post("/register", validate(registerValidation, {}, {}), createUser);
 
-routerAPI.get("/user", getUser);
+// API Đăng nhập: Thêm Validation + Rate Limiting
+routerAPI.post(
+  "/login",
+  loginLimiter,
+  validate(loginValidation, {}, {}),
+  handleLogin
+);
+
+// API User: Thêm Authorization (Chỉ Admin mới xem được danh sách user)
+routerAPI.get("/user", checkAdmin, getUser);
+
 routerAPI.get("/account", delay, getAccount);
 
 module.exports = routerAPI;

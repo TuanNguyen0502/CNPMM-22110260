@@ -13,6 +13,7 @@ const auth = (req, res, next) => {
         req.user = {
           email: decoded.email,
           name: decoded.name,
+          role: decoded.role,
           createdBy: "Nguyen Ha Hong Tuan",
         };
         next();
