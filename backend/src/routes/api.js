@@ -1,11 +1,13 @@
 const express = require("express");
 const { validate } = require("express-validation");
+
 const {
   createUser,
   handleLogin,
   getUser,
   getAccount,
 } = require("../controllers/userController");
+const { getProducts } = require("../controllers/productController");
 
 const auth = require("../middleware/auth");
 const delay = require("../middleware/delay");
@@ -43,5 +45,8 @@ routerAPI.post(
 routerAPI.get("/user", checkAdmin, getUser);
 
 routerAPI.get("/account", delay, getAccount);
+
+// Route này nằm sau middleware 'auth' và không thuộc whitelist, nên bắt buộc phải đăng nhập mới gọi được.
+routerAPI.get("/products", getProducts);
 
 module.exports = routerAPI;

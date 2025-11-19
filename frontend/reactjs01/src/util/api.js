@@ -24,4 +24,9 @@ const getUserApi = () => {
   return axios.get(URL_API);
 };
 
-export { createUserApi, loginApi, getUserApi };
+const getProductApi = (page, limit, category) => {
+  const URL_API = `/v1/api/products?page=${page}&limit=${limit}&category=${category}`;
+  return axios.get(URL_API);
+};
+
+export { createUserApi, loginApi, getUserApi, getProductApi };
