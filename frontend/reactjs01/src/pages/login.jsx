@@ -25,6 +25,7 @@ const LoginPage = () => {
         user: {
           email: res?.user?.email ?? "",
           name: res?.user?.name ?? "",
+          role: res?.user?.role ?? "",
         },
       });
       navigate("/");

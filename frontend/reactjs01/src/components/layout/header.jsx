@@ -12,6 +12,24 @@ import { AuthContext } from "../context/auth.context";
 const Header = () => {
   const navigate = useNavigate();
   const { auth, setAuth } = useContext(AuthContext);
+  const [current, setCurrent] = useState("home");
+
+  const onClick = (e) => {
+    setCurrent(e.key);
+    if (e.key === "logout") {
+      localStorage.removeItem("access_token");
+      setAuth({
+        isAuthenticated: false,
+        user: {
+          email: "",
+          name: "",
+          role: "",
+        },
+      });
+      navigate("/");
+    }
+  };
+
   const items = [
     {
       label: <Link to={"/"}>Home Page</Link>,
@@ -20,11 +38,15 @@ const Header = () => {
     },
     ...(auth.isAuthenticated
       ? [
-          {
-            label: <Link to={"/user"}>Users</Link>,
-            key: "user",
-            icon: <UsergroupAddOutlined />,
-          },
+          ...(auth.user.role === "Admin"
+            ? [
+                {
+                  label: <Link to={"/user"}>Users</Link>,
+                  key: "user",
+                  icon: <UsergroupAddOutlined />,
+                },
+              ]
+            : []),
           {
             label: <Link to={"/products"}>Products</Link>,
             key: "products",
@@ -41,24 +63,7 @@ const Header = () => {
         ...(auth.isAuthenticated
           ? [
               {
-                label: (
-                  <span
-                    onClick={() => {
-                      localStorage.clear("access_token");
-                      setCurrent("home");
-                      setAuth({
-                        isAuthenticated: false,
-                        user: {
-                          email: "",
-                          name: "",
-                        },
-                      });
-                      navigate("/");
-                    }}
-                  >
-                    Logout
-                  </span>
-                ),
+                label: "Logout",
                 key: "logout",
               },
             ]
@@ -71,10 +76,6 @@ const Header = () => {
       ],
     },
   ];
-  const [current, setCurrent] = useState("mail");
-  const onClick = (e) => {
-    setCurrent(e.key);
-  };
   return (
     <Menu
       onClick={onClick}
