@@ -7,7 +7,12 @@ const {
   getUser,
   getAccount,
 } = require("../controllers/userController");
-const { getProducts } = require("../controllers/productController");
+const {
+  getProducts,
+  handleCreateProduct,
+  handleUpdateProduct,
+  handleDeleteProduct,
+} = require("../controllers/productController");
 
 const auth = require("../middleware/auth");
 const delay = require("../middleware/delay");
@@ -48,5 +53,9 @@ routerAPI.get("/account", delay, getAccount);
 
 // Route này nằm sau middleware 'auth' và không thuộc whitelist, nên bắt buộc phải đăng nhập mới gọi được.
 routerAPI.get("/products", getProducts);
+
+routerAPI.post("/products", checkAdmin, handleCreateProduct);
+routerAPI.put("/products", checkAdmin, handleUpdateProduct);
+routerAPI.delete("/products/:id", checkAdmin, handleDeleteProduct);
 
 module.exports = routerAPI;
