@@ -34,4 +34,30 @@ const getProductApi = (page, limit, category) => {
   return axios.get(URL_API);
 };
 
-export { createUserApi, loginApi, getUserApi, getAccountApi, getProductApi };
+const createProductApi = (name, price, category, image) => {
+  const URL_API = "/v1/api/products";
+  const data = { name, price, category, image };
+  return axios.post(URL_API, data);
+};
+
+const updateProductApi = (id, name, price, category, image) => {
+  const URL_API = "/v1/api/products";
+  const data = { id, name, price, category, image };
+  return axios.put(URL_API, data);
+};
+
+const deleteProductApi = (id) => {
+  const URL_API = "/v1/api/products";
+  return axios.delete(`${URL_API}/${id}`);
+};
+
+export {
+  createUserApi,
+  loginApi,
+  getUserApi,
+  getAccountApi,
+  getProductApi,
+  createProductApi,
+  updateProductApi,
+  deleteProductApi,
+};
