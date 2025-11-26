@@ -59,14 +59,55 @@ const searchProductsService = async (
 
     // Add text search if query is provided
     if (query && query.trim() !== "") {
-      esQuery.bool.must.push({
-        multi_match: {
-          query: query,
-          fields: ["name^2", "category"], // Boost name field
-          type: "best_fields",
-          fuzziness: "AUTO",
+      esQuery.bool.should = [
+        // Exact phrase match (highest priority)
+        {
+          multi_match: {
+            query: query,
+            fields: ["name^4", "category^1"],
+            type: "phrase",
+            boost: 4
+          }
         },
-      });
+        // Autocomplete field match (great for partial matching)
+        {
+          match: {
+            "name.autocomplete": {
+              query: query,
+              boost: 3
+            }
+          }
+        },
+        // Partial word match with wildcards
+        {
+          wildcard: {
+            name: {
+              value: `*${query.toLowerCase()}*`,
+              boost: 2.5
+            }
+          }
+        },
+        // Prefix match (good for autocomplete)
+        {
+          multi_match: {
+            query: query,
+            fields: ["name^2", "category^1"],
+            type: "phrase_prefix",
+            boost: 2
+          }
+        },
+        // Fuzzy match for typos (lowest priority)
+        {
+          multi_match: {
+            query: query,
+            fields: ["name^1.5", "category^1"],
+            type: "best_fields",
+            fuzziness: "AUTO",
+            boost: 1
+          }
+        }
+      ];
+      esQuery.bool.minimum_should_match = 1;
     } else {
       // If no search query, match all documents
       esQuery.bool.must.push({

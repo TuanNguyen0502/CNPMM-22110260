@@ -67,6 +67,11 @@ const syncProductsApi = () => {
   return axios.post(URL_API);
 };
 
+const recreateIndexApi = () => {
+  const URL_API = "/v1/api/products/recreate-index";
+  return axios.post(URL_API);
+};
+
 export {
   createUserApi,
   loginApi,
@@ -78,4 +83,5 @@ export {
   deleteProductApi,
   searchProductApi,
   syncProductsApi,
+  recreateIndexApi,
 };

@@ -6,6 +6,7 @@ const {
   searchProductsService,
   syncProductsToES,
 } = require("../services/productService");
+const { recreateProductsIndex } = require("../config/elasticsearch");
 
 const getProducts = async (req, res) => {
   // Lấy tham số từ query string: ?page=1&limit=5&category=abc
@@ -60,6 +61,24 @@ const handleSyncProducts = async (req, res) => {
   return res.status(200).json(data);
 };
 
+const handleRecreateIndex = async (req, res) => {
+  const result = await recreateProductsIndex();
+  
+  if (result.success) {
+    // After recreating index, sync all products
+    const syncResult = await syncProductsToES();
+    return res.status(200).json({
+      EC: 0,
+      EM: `${result.message}. ${syncResult.EM || 'Products synced successfully'}`,
+    });
+  } else {
+    return res.status(500).json({
+      EC: 1,
+      EM: result.message,
+    });
+  }
+};
+
 module.exports = {
   getProducts,
   handleCreateProduct,
@@ -67,4 +86,5 @@ module.exports = {
   handleDeleteProduct,
   handleSearchProducts,
   handleSyncProducts,
+  handleRecreateIndex,
 };

@@ -14,6 +14,7 @@ const {
   handleDeleteProduct,
   handleSearchProducts,
   handleSyncProducts,
+  handleRecreateIndex,
 } = require("../controllers/productController");
 
 const auth = require("../middleware/auth");
@@ -61,6 +62,9 @@ routerAPI.get("/products/search", handleSearchProducts);
 
 // Sync existing products to Elasticsearch (Admin only)
 routerAPI.post("/products/sync", checkAdmin, handleSyncProducts);
+
+// Recreate Elasticsearch index with improved mapping (Admin only)
+routerAPI.post("/products/recreate-index", checkAdmin, handleRecreateIndex);
 
 routerAPI.post("/products", checkAdmin, handleCreateProduct);
 routerAPI.put("/products", checkAdmin, handleUpdateProduct);

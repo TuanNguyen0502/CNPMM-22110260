@@ -36,6 +36,33 @@ const createProductsIndex = async () => {
     if (!indexExists) {
       await client.indices.create({
         index: PRODUCTS_INDEX,
+        settings: {
+          number_of_shards: 1,
+          number_of_replicas: 0,
+          analysis: {
+            analyzer: {
+              standard: {
+                type: "standard",
+              },
+              autocomplete: {
+                tokenizer: "autocomplete",
+                filter: ["lowercase"]
+              },
+              search_autocomplete: {
+                tokenizer: "keyword",
+                filter: ["lowercase"]
+              }
+            },
+            tokenizer: {
+              autocomplete: {
+                type: "edge_ngram",
+                min_gram: 1,
+                max_gram: 20,
+                token_chars: ["letter", "digit"]
+              }
+            }
+          },
+        },
         mappings: {
           properties: {
             id: { type: "integer" },
@@ -44,6 +71,11 @@ const createProductsIndex = async () => {
               analyzer: "standard",
               fields: {
                 keyword: { type: "keyword" },
+                autocomplete: {
+                  type: "text",
+                  analyzer: "autocomplete",
+                  search_analyzer: "search_autocomplete"
+                }
               },
             },
             price: { type: "integer" },
@@ -55,22 +87,42 @@ const createProductsIndex = async () => {
             updatedAt: { type: "date" },
           },
         },
-        settings: {
-          number_of_shards: 1,
-          number_of_replicas: 0,
-          analysis: {
-            analyzer: {
-              standard: {
-                type: "standard",
-              },
-            },
-          },
-        },
       });
       console.log(`Created index: ${PRODUCTS_INDEX}`);
     }
   } catch (error) {
     console.error("Error creating products index:", error);
+  }
+};
+
+// Function to recreate index with new mapping
+const recreateProductsIndex = async () => {
+  try {
+    // Delete existing index if it exists
+    const indexExists = await client.indices.exists({
+      index: PRODUCTS_INDEX,
+    });
+    
+    if (indexExists) {
+      await client.indices.delete({
+        index: PRODUCTS_INDEX,
+      });
+      console.log(`Deleted existing index: ${PRODUCTS_INDEX}`);
+    }
+    
+    // Create new index with updated mapping
+    await createProductsIndex();
+    
+    return {
+      success: true,
+      message: `Index ${PRODUCTS_INDEX} recreated successfully`
+    };
+  } catch (error) {
+    console.error('Error recreating products index:', error);
+    return {
+      success: false,
+      message: 'Failed to recreate index'
+    };
   }
 };
 
@@ -80,4 +132,5 @@ createProductsIndex();
 module.exports = {
   client,
   PRODUCTS_INDEX,
+  recreateProductsIndex,
 };
