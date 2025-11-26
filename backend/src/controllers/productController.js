@@ -3,6 +3,8 @@ const {
   createProductService,
   updateProductService,
   deleteProductService,
+  searchProductsService,
+  syncProductsToES,
 } = require("../services/productService");
 
 const getProducts = async (req, res) => {
@@ -33,9 +35,36 @@ const handleDeleteProduct = async (req, res) => {
   return res.status(200).json(data);
 };
 
+const handleSearchProducts = async (req, res) => {
+  // Get search parameters from query string: ?q=phone&page=1&limit=10&category=Electronics&minPrice=100&maxPrice=1000
+  let query = req.query.q || "";
+  let page = +req.query.page || 1;
+  let limit = +req.query.limit || 10;
+  let category = req.query.category;
+  let minPrice = req.query.minPrice ? +req.query.minPrice : undefined;
+  let maxPrice = req.query.maxPrice ? +req.query.maxPrice : undefined;
+
+  const data = await searchProductsService(
+    query,
+    page,
+    limit,
+    category,
+    minPrice,
+    maxPrice
+  );
+  return res.status(200).json(data);
+};
+
+const handleSyncProducts = async (req, res) => {
+  const data = await syncProductsToES();
+  return res.status(200).json(data);
+};
+
 module.exports = {
   getProducts,
   handleCreateProduct,
   handleUpdateProduct,
   handleDeleteProduct,
+  handleSearchProducts,
+  handleSyncProducts,
 };

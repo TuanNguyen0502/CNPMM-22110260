@@ -12,6 +12,8 @@ const {
   handleCreateProduct,
   handleUpdateProduct,
   handleDeleteProduct,
+  handleSearchProducts,
+  handleSyncProducts,
 } = require("../controllers/productController");
 
 const auth = require("../middleware/auth");
@@ -53,6 +55,12 @@ routerAPI.get("/account", delay, getAccount);
 
 // Route này nằm sau middleware 'auth' và không thuộc whitelist, nên bắt buộc phải đăng nhập mới gọi được.
 routerAPI.get("/products", getProducts);
+
+// Search products using Elasticsearch
+routerAPI.get("/products/search", handleSearchProducts);
+
+// Sync existing products to Elasticsearch (Admin only)
+routerAPI.post("/products/sync", checkAdmin, handleSyncProducts);
 
 routerAPI.post("/products", checkAdmin, handleCreateProduct);
 routerAPI.put("/products", checkAdmin, handleUpdateProduct);
