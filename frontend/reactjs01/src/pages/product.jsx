@@ -9,6 +9,12 @@ import {
   InputNumber,
   Space,
   Popconfirm,
+  Card,
+  Row,
+  Col,
+  Slider,
+  Switch,
+  Tag,
 } from "antd";
 import { useEffect, useState, useContext } from "react";
 import {
@@ -16,9 +22,19 @@ import {
   createProductApi,
   updateProductApi,
   deleteProductApi,
+  searchProductApi,
+  syncProductsApi,
 } from "../util/api";
 import { AuthContext } from "../components/context/auth.context";
-import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import ProductSearchComponent from "../components/ProductSearchComponent";
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+  SyncOutlined,
+  ClearOutlined,
+} from "@ant-design/icons";
 
 const ProductPage = () => {
   const { auth } = useContext(AuthContext); // Lấy thông tin auth để check role
@@ -29,22 +45,93 @@ const ProductPage = () => {
   const [total, setTotal] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState("ALL");
 
+  // Search states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [useElasticsearch, setUseElasticsearch] = useState(false);
+  const [priceRange, setPriceRange] = useState([0, 10000]);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
+
   // State cho Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(() => {
     fetchProducts();
-  }, [current, pageSize, selectedCategory]);
+  }, [
+    current,
+    pageSize,
+    selectedCategory,
+    searchQuery,
+    useElasticsearch,
+    priceRange,
+  ]);
 
   const fetchProducts = async () => {
     setLoading(true);
-    const res = await getProductApi(current, pageSize, selectedCategory);
+    let res;
+
+    if (useElasticsearch || searchQuery.trim() !== "") {
+      // Use Elasticsearch search
+      const minPrice = showAdvancedFilters ? priceRange[0] : undefined;
+      const maxPrice = showAdvancedFilters ? priceRange[1] : undefined;
+      res = await searchProductApi(
+        searchQuery,
+        current,
+        pageSize,
+        selectedCategory,
+        minPrice,
+        maxPrice
+      );
+    } else {
+      // Use traditional pagination
+      res = await getProductApi(current, pageSize, selectedCategory);
+    }
+
     if (res && res.EC === 0) {
       setDataSource(res.data);
       setTotal(res.total);
     }
     setLoading(false);
+  };
+
+  const handleSearch = () => {
+    setCurrent(1); // Reset to first page when searching
+    fetchProducts();
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setSelectedCategory("ALL");
+    setPriceRange([0, 10000]);
+    setUseElasticsearch(false);
+    setShowAdvancedFilters(false);
+    setCurrent(1);
+  };
+
+  const handleSyncProducts = async () => {
+    setSyncLoading(true);
+    try {
+      const res = await syncProductsApi();
+      if (res && res.EC === 0) {
+        notification.success({
+          message: "Sync Successful",
+          description:
+            res.EM || "Products synced to Elasticsearch successfully!",
+        });
+      } else {
+        notification.error({
+          message: "Sync Failed",
+          description: res.EM || "Failed to sync products to Elasticsearch.",
+        });
+      }
+    } catch (error) {
+      notification.error({
+        message: "Sync Error",
+        description: "An error occurred while syncing products.",
+      });
+    }
+    setSyncLoading(false);
   };
 
   const onFinish = async (values) => {
@@ -146,37 +233,73 @@ const ProductPage = () => {
       >
         <h2>Danh sách sản phẩm</h2>
 
-        {auth.user.role === "Admin" && (
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setIsModalOpen(true);
-              form.resetFields(); // Xóa form cũ để nhập mới
-            }}
-          >
-            Add New
-          </Button>
-        )}
+        <Space>
+          {auth.user.role === "Admin" && (
+            <>
+              <Button
+                icon={<SyncOutlined />}
+                loading={syncLoading}
+                onClick={handleSyncProducts}
+                title="Sync products to Elasticsearch"
+              >
+                Sync ES
+              </Button>
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  setIsModalOpen(true);
+                  form.resetFields(); // Xóa form cũ để nhập mới
+                }}
+              >
+                Add New
+              </Button>
+            </>
+          )}
+        </Space>
       </div>
 
-      <div style={{ marginBottom: 20 }}>
-        <span>Lọc theo danh mục: </span>
-        <Select
-          defaultValue="ALL"
-          style={{ width: 150 }}
-          onChange={(value) => {
-            setSelectedCategory(value);
-            setCurrent(1);
-          }}
-          options={[
-            { value: "ALL", label: "Tất cả" },
-            { value: "Electronics", label: "Điện tử" },
-            { value: "Clothing", label: "Quần áo" },
-            { value: "Books", label: "Sách" },
-          ]}
-        />
-      </div>
+      {/* Search Interface */}
+      <ProductSearchComponent
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={(value) => {
+          setSelectedCategory(value);
+          setCurrent(1);
+        }}
+        useElasticsearch={useElasticsearch}
+        setUseElasticsearch={setUseElasticsearch}
+        priceRange={priceRange}
+        setPriceRange={setPriceRange}
+        showAdvancedFilters={showAdvancedFilters}
+        setShowAdvancedFilters={setShowAdvancedFilters}
+        onSearch={handleSearch}
+        onClear={handleClearSearch}
+        loading={loading}
+      />
+
+      {/* Search Results Info */}
+      {(searchQuery || useElasticsearch || selectedCategory !== "ALL") && (
+        <Card size="small" style={{ marginBottom: 16 }}>
+          <Space wrap>
+            <Tag color="blue">{total} results found</Tag>
+            {searchQuery && <Tag color="green">Search: "{searchQuery}"</Tag>}
+            {selectedCategory !== "ALL" && (
+              <Tag color="orange">Category: {selectedCategory}</Tag>
+            )}
+            {showAdvancedFilters &&
+              (priceRange[0] > 0 || priceRange[1] < 10000) && (
+                <Tag color="purple">
+                  Price: ${priceRange[0]} - ${priceRange[1]}
+                </Tag>
+              )}
+            {useElasticsearch && (
+              <Tag color="gold">Powered by Elasticsearch</Tag>
+            )}
+          </Space>
+        </Card>
+      )}
 
       <Table
         loading={loading}

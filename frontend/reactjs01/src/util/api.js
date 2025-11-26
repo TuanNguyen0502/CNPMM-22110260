@@ -51,6 +51,22 @@ const deleteProductApi = (id) => {
   return axios.delete(`${URL_API}/${id}`);
 };
 
+const searchProductApi = (query, page, limit, category, minPrice, maxPrice) => {
+  let URL_API = `/v1/api/products/search?page=${page}&limit=${limit}`;
+
+  if (query) URL_API += `&q=${encodeURIComponent(query)}`;
+  if (category && category !== "ALL") URL_API += `&category=${category}`;
+  if (minPrice) URL_API += `&minPrice=${minPrice}`;
+  if (maxPrice) URL_API += `&maxPrice=${maxPrice}`;
+
+  return axios.get(URL_API);
+};
+
+const syncProductsApi = () => {
+  const URL_API = "/v1/api/products/sync";
+  return axios.post(URL_API);
+};
+
 export {
   createUserApi,
   loginApi,
@@ -60,4 +76,6 @@ export {
   createProductApi,
   updateProductApi,
   deleteProductApi,
+  searchProductApi,
+  syncProductsApi,
 };
