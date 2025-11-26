@@ -11,19 +11,34 @@ function App() {
   useEffect(() => {
     const fetchAccount = async () => {
       setAppLoading(true);
+      
+      try {
+        const res = await axios.get("/v1/api/account");
 
-      const res = await axios.get("/v1/api/account");
-
-      if (res && !res.message) {
+        if (res && !res.message) {
+          setAuth({
+            isAuthenticated: true,
+            user: {
+              email: res.email,
+              name: res.name,
+              role: res.role,
+            },
+          });
+        }
+      } catch (error) {
+        console.log("Error fetching account:", error);
+        // If token is invalid or expired, clear it
+        localStorage.removeItem("access_token");
         setAuth({
-          isAuthenticated: true,
+          isAuthenticated: false,
           user: {
-            email: res.email,
-            name: res.name,
-            role: res.role,
+            email: "",
+            name: "",
+            role: "",
           },
         });
       }
+      
       setAppLoading(false);
     };
 

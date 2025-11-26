@@ -6,9 +6,10 @@ const instance = axios.create({
 
 instance.interceptors.request.use(
   function (config) {
-    config.headers.Authorization = `Bearer ${localStorage.getItem(
-      "access_token"
-    )}`;
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   function (error) {
@@ -23,6 +24,14 @@ instance.interceptors.response.use(
     }
   },
   function (error) {
+    if (error.response?.status === 401) {
+      // Token is invalid or expired
+      localStorage.removeItem("access_token");
+      // Optionally redirect to login page
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        window.location.href = '/login';
+      }
+    }
     return Promise.reject(error);
   }
 );
