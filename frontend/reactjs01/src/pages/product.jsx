@@ -10,10 +10,6 @@ import {
   Space,
   Popconfirm,
   Card,
-  Row,
-  Col,
-  Slider,
-  Switch,
   Tag,
 } from "antd";
 import { useEffect, useState, useContext } from "react";
@@ -47,7 +43,6 @@ const ProductPage = () => {
 
   // Search states
   const [searchQuery, setSearchQuery] = useState("");
-  const [useElasticsearch, setUseElasticsearch] = useState(false);
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
@@ -58,35 +53,22 @@ const ProductPage = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [
-    current,
-    pageSize,
-    selectedCategory,
-    searchQuery,
-    useElasticsearch,
-    priceRange,
-  ]);
+  }, [current, pageSize, selectedCategory, searchQuery, priceRange]);
 
   const fetchProducts = async () => {
     setLoading(true);
-    let res;
 
-    if (useElasticsearch || searchQuery.trim() !== "") {
-      // Use Elasticsearch search
-      const minPrice = showAdvancedFilters ? priceRange[0] : undefined;
-      const maxPrice = showAdvancedFilters ? priceRange[1] : undefined;
-      res = await searchProductApi(
-        searchQuery,
-        current,
-        pageSize,
-        selectedCategory,
-        minPrice,
-        maxPrice
-      );
-    } else {
-      // Use traditional pagination
-      res = await getProductApi(current, pageSize, selectedCategory);
-    }
+    // Always use Elasticsearch search
+    const minPrice = showAdvancedFilters ? priceRange[0] : undefined;
+    const maxPrice = showAdvancedFilters ? priceRange[1] : undefined;
+    const res = await searchProductApi(
+      searchQuery,
+      current,
+      pageSize,
+      selectedCategory,
+      minPrice,
+      maxPrice
+    );
 
     if (res && res.EC === 0) {
       setDataSource(res.data);
@@ -104,7 +86,6 @@ const ProductPage = () => {
     setSearchQuery("");
     setSelectedCategory("ALL");
     setPriceRange([0, 10000]);
-    setUseElasticsearch(false);
     setShowAdvancedFilters(false);
     setCurrent(1);
   };
@@ -268,8 +249,6 @@ const ProductPage = () => {
           setSelectedCategory(value);
           setCurrent(1);
         }}
-        useElasticsearch={useElasticsearch}
-        setUseElasticsearch={setUseElasticsearch}
         priceRange={priceRange}
         setPriceRange={setPriceRange}
         showAdvancedFilters={showAdvancedFilters}
@@ -280,7 +259,7 @@ const ProductPage = () => {
       />
 
       {/* Search Results Info */}
-      {(searchQuery || useElasticsearch || selectedCategory !== "ALL") && (
+      {(searchQuery || selectedCategory !== "ALL" || showAdvancedFilters) && (
         <Card size="small" style={{ marginBottom: 16 }}>
           <Space wrap>
             <Tag color="blue">{total} results found</Tag>
@@ -294,9 +273,7 @@ const ProductPage = () => {
                   Price: ${priceRange[0]} - ${priceRange[1]}
                 </Tag>
               )}
-            {useElasticsearch && (
-              <Tag color="gold">Powered by Elasticsearch</Tag>
-            )}
+            <Tag color="gold">Powered by Elasticsearch</Tag>
           </Space>
         </Card>
       )}

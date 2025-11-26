@@ -7,7 +7,6 @@ import {
   Card,
   Row,
   Col,
-  Switch,
   Slider,
   Tag,
 } from "antd";
@@ -22,8 +21,6 @@ const ProductSearchComponent = ({
   setSearchQuery,
   selectedCategory,
   setSelectedCategory,
-  useElasticsearch,
-  setUseElasticsearch,
   priceRange,
   setPriceRange,
   showAdvancedFilters,
@@ -45,9 +42,7 @@ const ProductSearchComponent = ({
         <Space>
           <SearchOutlined />
           Product Search
-          <Tag color={useElasticsearch ? "green" : "default"}>
-            {useElasticsearch ? "Elasticsearch" : "Database"}
-          </Tag>
+          <Tag color="green">Elasticsearch</Tag>
         </Space>
       }
       extra={
@@ -62,7 +57,7 @@ const ProductSearchComponent = ({
       style={{ marginBottom: 20 }}
     >
       <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} md={10}>
+        <Col xs={24} sm={12} md={12}>
           <Input.Search
             placeholder="Search products by name..."
             value={searchQuery}
@@ -73,7 +68,7 @@ const ProductSearchComponent = ({
             loading={loading}
           />
         </Col>
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={24} sm={12} md={8}>
           <Select
             value={selectedCategory}
             style={{ width: "100%" }}
@@ -83,19 +78,7 @@ const ProductSearchComponent = ({
             options={categories}
           />
         </Col>
-        <Col xs={24} sm={12} md={5}>
-          <Space size="middle">
-            <span>Search Engine:</span>
-            <Switch
-              checked={useElasticsearch}
-              onChange={setUseElasticsearch}
-              checkedChildren="ES"
-              unCheckedChildren="DB"
-              title="Toggle between Elasticsearch and Database search"
-            />
-          </Space>
-        </Col>
-        <Col xs={24} sm={12} md={3}>
+        <Col xs={24} sm={12} md={4}>
           <Button icon={<ClearOutlined />} onClick={onClear} block>
             Clear
           </Button>
