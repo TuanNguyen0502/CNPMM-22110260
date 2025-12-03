@@ -9,22 +9,19 @@ import UserPage from "./pages/user.jsx";
 import HomePage from "./pages/home.jsx";
 import LoginPage from "./pages/login.jsx";
 import { AuthWrapper } from "./components/context/auth.context.jsx";
+import { CartWrapper } from "./components/context/cart.context.jsx";
 import ProductPage from "./pages/product.jsx";
+import CartPage from "./pages/cart.jsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     children: [
-      {
-        index: true,
-        element: <HomePage />,
-      },
-      {
-        path: "user",
-        element: <UserPage />,
-      },
+      { index: true, element: <HomePage /> },
+      { path: "user", element: <UserPage /> },
       { path: "products", element: <ProductPage /> },
+      { path: "cart", element: <CartPage /> },
     ],
   },
   {
@@ -40,7 +37,9 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AuthWrapper>
-      <RouterProvider router={router} />
+      <CartWrapper>
+        <RouterProvider router={router} />
+      </CartWrapper>
     </AuthWrapper>
   </React.StrictMode>
 );

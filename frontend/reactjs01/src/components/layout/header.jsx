@@ -5,14 +5,16 @@ import {
   SettingOutlined,
   ShoppingOutlined,
 } from "@ant-design/icons";
-import { Menu } from "antd";
+import { Menu, Badge } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/auth.context";
+import { useCartContext } from "../context/cart.context";
 
 const Header = () => {
   const navigate = useNavigate();
   const { auth, setAuth } = useContext(AuthContext);
   const [current, setCurrent] = useState("home");
+  const { cartItems } = useCartContext();
 
   const onClick = (e) => {
     setCurrent(e.key);
@@ -50,6 +52,16 @@ const Header = () => {
           {
             label: <Link to={"/products"}>Products</Link>,
             key: "products",
+            icon: <ShoppingOutlined />,
+          },
+          {
+            label: (
+              <Link to={"/cart"}>
+                Cart{" "}
+                <Badge count={cartItems.length} size="small" offset={[5, 0]} />
+              </Link>
+            ),
+            key: "cart",
             icon: <ShoppingOutlined />,
           },
         ]

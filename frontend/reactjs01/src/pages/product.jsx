@@ -29,8 +29,9 @@ import {
   DeleteOutlined,
   SearchOutlined,
   SyncOutlined,
-  ClearOutlined,
+  ShoppingCartOutlined,
 } from "@ant-design/icons";
+import { useCartContext } from "../components/context/cart.context";
 
 const ProductPage = () => {
   const { auth } = useContext(AuthContext); // Lấy thông tin auth để check role
@@ -50,6 +51,8 @@ const ProductPage = () => {
   // State cho Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
+
+  const { addToCart } = useCartContext();
 
   useEffect(() => {
     fetchProducts();
@@ -156,6 +159,22 @@ const ProductPage = () => {
     }
   };
 
+  // Hàm xử lý khi bấm thêm vào giỏ
+  const handleAddToCart = (product) => {
+    // Map dữ liệu từ API sang cấu trúc thư viện yêu cầu (nếu cần)
+    const itemToAdd = {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      // quantity sẽ được thư viện tự xử lý (mặc định là 1)
+    };
+    addToCart(itemToAdd);
+    notification.success({
+      message: "Thành công",
+      description: `Đã thêm ${product.name} vào giỏ hàng`,
+    });
+  };
+
   const columns = [
     { title: "ID", dataIndex: "id", key: "id" },
     { title: "Name", dataIndex: "name", key: "name" },
@@ -166,6 +185,19 @@ const ProductPage = () => {
       render: (value) => `${value.toLocaleString()} đ`,
     },
     { title: "Category", dataIndex: "category", key: "category" },
+    {
+      title: "Buy",
+      key: "buy",
+      render: (_, record) => (
+        <Button
+          type="primary"
+          icon={<ShoppingCartOutlined />}
+          onClick={() => handleAddToCart(record)}
+        >
+          Add
+        </Button>
+      ),
+    },
     ...(auth.user.role === "Admin"
       ? [
           {
