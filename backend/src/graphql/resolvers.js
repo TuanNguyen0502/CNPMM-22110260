@@ -13,6 +13,7 @@ const getOrCreateCart = async (userId) => {
 
 const resolvers = {
   CartItem: {
+    product: (parent) => parent.Product,
     totalPrice: (parent) => {
       // parent.Product được load từ include trong query
       return parent.Product ? parent.Product.price * parent.quantity : 0;
