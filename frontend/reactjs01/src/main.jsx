@@ -13,6 +13,9 @@ import { CartWrapper } from "./components/context/cart.context.jsx";
 import ProductPage from "./pages/product.jsx";
 import CartPage from "./pages/cart.jsx";
 
+import { ApolloProvider } from "@apollo/client";
+import client from "./config/apollo";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -37,9 +40,11 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AuthWrapper>
-      <CartWrapper>
-        <RouterProvider router={router} />
-      </CartWrapper>
+      <ApolloProvider client={client}>
+        <CartWrapper>
+          <RouterProvider router={router} />
+        </CartWrapper>
+      </ApolloProvider>
     </AuthWrapper>
   </React.StrictMode>
 );
