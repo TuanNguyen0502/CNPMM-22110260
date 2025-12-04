@@ -29,6 +29,7 @@ import {
   getProductStatsApi,
   getSimilarProductsApi,
   toggleFavoriteApi,
+  getFavoritesApi
 } from "../util/api";
 import { useCartContext } from "../components/context/cart.context";
 
@@ -67,6 +68,15 @@ const ProductDetail = () => {
         const resSimilar = await getSimilarProductsApi(id);
         if (resSimilar && resSimilar.EC === 0) {
           setSimilarProducts(resSimilar.data);
+        }
+
+        // Kiểm tra sản phẩm có trong danh sách Yêu thích không
+        const resFav = await getFavoritesApi();
+        if (resFav && resFav.EC === 0) {
+          // resFav.data là mảng các sản phẩm đã thích
+          // Kiểm tra xem ID sản phẩm hiện tại có trong danh sách đó không
+          const isLiked = resFav.data.some((item) => item.id === +id);
+          setIsFavorite(isLiked);
         }
       } catch (error) {
         console.error(error);
