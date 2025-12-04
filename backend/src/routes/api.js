@@ -32,6 +32,8 @@ const {
 const { apiLimiter, loginLimiter } = require("../middleware/limiter");
 const { checkAdmin } = require("../middleware/role");
 
+const { handlePlaceOrder } = require("../controllers/orderController");
+
 const routerAPI = express.Router();
 
 // 1. Áp dụng Authentication cho toàn bộ router (trừ whitelist định nghĩa trong auth.js)
@@ -85,5 +87,7 @@ routerAPI.post("/favorites", handleToggleFavorite);
 routerAPI.get("/favorites", handleGetFavorites);
 
 routerAPI.get("/products/:id", handleGetProductById);
+
+routerAPI.post("/orders", handlePlaceOrder);
 
 module.exports = routerAPI;
