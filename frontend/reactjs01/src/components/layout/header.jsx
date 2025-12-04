@@ -4,6 +4,7 @@ import {
   HomeOutlined,
   SettingOutlined,
   ShoppingOutlined,
+  HeartOutlined,
 } from "@ant-design/icons";
 import { Menu, Badge } from "antd";
 import { Link, useNavigate } from "react-router-dom";
@@ -53,6 +54,11 @@ const Header = () => {
             label: <Link to={"/products"}>Products</Link>,
             key: "products",
             icon: <ShoppingOutlined />,
+          },
+          {
+            label: <Link to={"/favorites"}>Favorites</Link>,
+            key: "favorites",
+            icon: <HeartOutlined />,
           },
           {
             label: (
