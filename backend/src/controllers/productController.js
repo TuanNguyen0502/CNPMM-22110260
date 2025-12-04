@@ -10,6 +10,7 @@ const {
   getProductStatsService,
   toggleFavoriteService,
   getFavoritesService,
+  getProductByIdService,
 } = require("../services/productService");
 const { recreateProductsIndex } = require("../config/elasticsearch");
 
@@ -118,6 +119,12 @@ const handleGetFavorites = async (req, res) => {
   return res.status(200).json(data);
 };
 
+const handleGetProductById = async (req, res) => {
+  const { id } = req.params;
+  const data = await getProductByIdService(id);
+  return res.status(200).json(data);
+};
+
 module.exports = {
   getProducts,
   handleCreateProduct,
@@ -131,4 +138,5 @@ module.exports = {
   handleGetProductStats,
   handleToggleFavorite,
   handleGetFavorites,
+  handleGetProductById,
 };

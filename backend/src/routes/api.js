@@ -19,7 +19,8 @@ const {
   handleGetSimilarProducts,
   handleGetProductStats,
   handleToggleFavorite,
-  handleGetFavorites
+  handleGetFavorites,
+  handleGetProductById,
 } = require("../controllers/productController");
 
 const auth = require("../middleware/auth");
@@ -82,5 +83,7 @@ routerAPI.get("/products/:id/stats", handleGetProductStats);
 // 2. Route cho Yêu thích
 routerAPI.post("/favorites", handleToggleFavorite);
 routerAPI.get("/favorites", handleGetFavorites);
+
+routerAPI.get("/products/:id", handleGetProductById);
 
 module.exports = routerAPI;

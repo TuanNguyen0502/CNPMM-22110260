@@ -406,7 +406,18 @@ const getFavoritesService = async (userId) => {
   }
 };
 
-// --- CẬP NHẬT MODULE.EXPORTS ---
+const getProductByIdService = async (id) => {
+  try {
+    const product = await Product.findByPk(id);
+    if (product) {
+      return { EC: 0, data: product };
+    }
+    return { EC: 1, EM: "Product not found" };
+  } catch (error) {
+    return { EC: 1, EM: error.message };
+  }
+};
+
 module.exports = {
   getProductWithPagination,
   createProductService,
@@ -421,4 +432,5 @@ module.exports = {
   getProductStatsService,
   toggleFavoriteService,
   getFavoritesService,
+  getProductByIdService,
 };
