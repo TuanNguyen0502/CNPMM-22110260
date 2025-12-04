@@ -21,6 +21,8 @@ const {
   handleToggleFavorite,
   handleGetFavorites,
   handleGetProductById,
+  handleCreateReview,
+  handleCheckUserBuyProduct,
 } = require("../controllers/productController");
 
 const auth = require("../middleware/auth");
@@ -89,5 +91,8 @@ routerAPI.get("/favorites", handleGetFavorites);
 routerAPI.get("/products/:id", handleGetProductById);
 
 routerAPI.post("/orders", handlePlaceOrder);
+
+routerAPI.post("/reviews", handleCreateReview);
+routerAPI.get("/products/:id/is-bought", handleCheckUserBuyProduct);
 
 module.exports = routerAPI;

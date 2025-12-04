@@ -11,6 +11,8 @@ const {
   toggleFavoriteService,
   getFavoritesService,
   getProductByIdService,
+  createReviewService,
+  checkUserBuyProductService,
 } = require("../services/productService");
 const { recreateProductsIndex } = require("../config/elasticsearch");
 
@@ -125,6 +127,30 @@ const handleGetProductById = async (req, res) => {
   return res.status(200).json(data);
 };
 
+const handleCreateReview = async (req, res) => {
+  const { productId, content, rating } = req.body;
+
+  const User = require("../models/user");
+  const user = await User.findOne({ where: { email: req.user.email } });
+
+  if (!user) return res.status(401).json({ EC: 1, EM: "User not found" });
+
+  const data = await createReviewService(user.id, productId, content, rating);
+  return res.status(200).json(data);
+};
+
+const handleCheckUserBuyProduct = async (req, res) => {
+  const { id } = req.params; // Lấy Product ID từ URL
+  
+  const User = require("../models/user");
+  const user = await User.findOne({ where: { email: req.user.email } });
+
+  if (!user) return res.status(401).json({ EC: 1, EM: "User not found" });
+
+  const data = await checkUserBuyProductService(user.id, id);
+  return res.status(200).json(data);
+};
+
 module.exports = {
   getProducts,
   handleCreateProduct,
@@ -139,4 +165,6 @@ module.exports = {
   handleToggleFavorite,
   handleGetFavorites,
   handleGetProductById,
+  handleCreateReview,
+  handleCheckUserBuyProduct,
 };

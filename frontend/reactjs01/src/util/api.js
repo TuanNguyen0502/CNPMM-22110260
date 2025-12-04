@@ -97,6 +97,14 @@ const placeOrderApi = (name, address, phone) => {
   return axios.post(URL_API, { name, address, phone });
 };
 
+const createReviewApi = (productId, content, rating) => {
+  return axios.post("/v1/api/reviews", { productId, content, rating });
+};
+
+const checkUserBuyProductApi = (id) => {
+  return axios.get(`/v1/api/products/${id}/is-bought`);
+};
+
 export {
   createUserApi,
   loginApi,
@@ -116,4 +124,6 @@ export {
   toggleFavoriteApi,
   getFavoritesApi,
   placeOrderApi,
+  createReviewApi,
+  checkUserBuyProductApi,
 };

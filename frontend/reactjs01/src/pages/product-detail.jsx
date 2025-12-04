@@ -15,6 +15,8 @@ import {
   Space,
   notification,
   Spin,
+  Form,
+  Input,
 } from "antd";
 import {
   ShoppingCartOutlined,
@@ -29,9 +31,14 @@ import {
   getProductStatsApi,
   getSimilarProductsApi,
   toggleFavoriteApi,
-  getFavoritesApi
+  getFavoritesApi,
+  createReviewApi,
+  checkUserBuyProductApi,
 } from "../util/api";
 import { useCartContext } from "../components/context/cart.context";
+
+import { AuthContext } from "../components/context/auth.context";
+import { useContext } from "react";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -46,6 +53,10 @@ const ProductDetail = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(false);
   const [recentlyViewed, setRecentlyViewed] = useState([]);
+
+  const { auth } = useContext(AuthContext);
+  const [form] = Form.useForm();
+  const [canReview, setCanReview] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -122,6 +133,40 @@ const ProductDetail = () => {
       }
     } catch (e) {
       notification.error({ message: "Cần đăng nhập để thực hiện!" });
+    }
+  };
+
+  useEffect(() => {
+    const checkBuy = async () => {
+      if (auth.isAuthenticated && id) {
+        const res = await checkUserBuyProductApi(id);
+        if (res && res.EC === 0) {
+          setCanReview(res.data); // data là true/false
+        }
+      } else {
+        setCanReview(false); // Chưa đăng nhập thì không được đánh giá
+      }
+    };
+    checkBuy();
+  }, [auth.isAuthenticated, id]);
+
+  const onFinishReview = async (values) => {
+    const { content, rating } = values;
+
+    // Gọi API tạo review
+    const res = await createReviewApi(id, content, rating);
+
+    if (res && res.EC === 0) {
+      notification.success({ message: "Gửi đánh giá thành công!" });
+      form.resetFields();
+
+      // Gọi lại API thống kê để cập nhật danh sách bình luận mới nhất ngay lập tức
+      const resStats = await getProductStatsApi(id);
+      if (resStats && resStats.EC === 0) {
+        setStats(resStats.data);
+      }
+    } else {
+      notification.error({ message: "Gửi thất bại", description: res.EM });
     }
   };
 
@@ -203,6 +248,79 @@ const ProductDetail = () => {
       <Row gutter={[24, 24]}>
         <Col span={24}>
           <Card title={`Đánh giá & Bình luận (${stats.totalReviews})`}>
+            {/* --- FORM ĐÁNH GIÁ --- */}
+            {auth.isAuthenticated ? (
+              canReview ? (
+                // TRƯỜNG HỢP 1: Đã đăng nhập + Đã mua hàng -> Hiện Form
+                <div style={{ marginBottom: 30 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      alignItems: "center",
+                      marginBottom: 10,
+                    }}
+                  >
+                    <Avatar icon={<UserOutlined />} />
+                    <Text strong>{auth.user.name}</Text>
+                  </div>
+                  <Form
+                    form={form}
+                    onFinish={onFinishReview}
+                    initialValues={{ rating: 5 }}
+                  >
+                    <Form.Item name="rating" label="Đánh giá">
+                      <Rate />
+                    </Form.Item>
+                    <Form.Item
+                      name="content"
+                      rules={[
+                        { required: true, message: "Vui lòng nhập nội dung!" },
+                      ]}
+                    >
+                      <Input.TextArea
+                        rows={3}
+                        placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."
+                      />
+                    </Form.Item>
+                    <Button type="primary" htmlType="submit">
+                      Gửi đánh giá
+                    </Button>
+                  </Form>
+                  <Divider />
+                </div>
+              ) : (
+                // TRƯỜNG HỢP 2: Đã đăng nhập + Chưa mua hàng -> Hiện thông báo
+                <div
+                  style={{
+                    marginBottom: 20,
+                    color: "#faad14",
+                    fontStyle: "italic",
+                  }}
+                >
+                  <SafetyCertificateOutlined /> Bạn cần mua sản phẩm này để viết
+                  đánh giá.
+                  <Divider />
+                </div>
+              )
+            ) : (
+              // TRƯỜNG HỢP 3: Chưa đăng nhập -> Hiện link đăng nhập
+              <div
+                style={{ marginBottom: 20, fontStyle: "italic", color: "#888" }}
+              >
+                Vui lòng{" "}
+                <span
+                  style={{ color: "#1677ff", cursor: "pointer" }}
+                  onClick={() => navigate("/login")}
+                >
+                  đăng nhập
+                </span>{" "}
+                để viết đánh giá.
+                <Divider />
+              </div>
+            )}
+
+            {/* --- DANH SÁCH BÌNH LUẬN --- */}
             {stats.reviews.length > 0 ? (
               <List
                 itemLayout="horizontal"
@@ -213,7 +331,10 @@ const ProductDetail = () => {
                       avatar={
                         <Avatar
                           icon={<UserOutlined />}
-                          style={{ backgroundColor: "#87d068" }}
+                          style={{
+                            backgroundColor: "#fde3cf",
+                            color: "#f56a00",
+                          }}
                         />
                       }
                       title={

@@ -4,7 +4,7 @@ const { client, PRODUCTS_INDEX } = require("../config/elasticsearch");
 
 const Favorite = require("../models/favorite");
 const Review = require("../models/review");
-const { OrderItem } = require("../models/order");
+const { Order, OrderItem } = require("../models/order");
 const User = require("../models/user");
 
 // Helper function to index a product to Elasticsearch
@@ -418,6 +418,72 @@ const getProductByIdService = async (id) => {
   }
 };
 
+const createReviewService = async (userId, productId, content, rating) => {
+  try {
+    if (!content || !rating) {
+      return { EC: 1, EM: "Missing content or rating" };
+    }
+
+    // Kiểm tra xem user đã mua sản phẩm này chưa
+    const hasPurchased = await Order.findOne({
+      where: { userId: userId }, // Tìm đơn hàng của user
+      include: [
+        {
+          model: OrderItem,
+          where: { productId: productId }, // Tìm sản phẩm trong đơn hàng
+          required: true, // Bắt buộc phải có (Inner Join)
+        },
+      ],
+    });
+
+    if (!hasPurchased) {
+      return {
+        EC: 1,
+        EM: "Bạn cần mua sản phẩm này trước khi đánh giá!",
+      };
+    }
+
+    await Review.create({
+      userId: userId,
+      productId: productId,
+      content: content,
+      rating: rating,
+    });
+
+    return {
+      EC: 0,
+      EM: "Create review successfully",
+    };
+  } catch (error) {
+    console.log(error);
+    return { EC: 1, EM: "Error creating review" };
+  }
+};
+
+const checkUserBuyProductService = async (userId, productId) => {
+  try {
+    const order = await Order.findOne({
+      where: { userId: userId },
+      include: [
+        {
+          model: OrderItem,
+          where: { productId: productId },
+          required: true, // Inner Join: Bắt buộc phải có sản phẩm này trong đơn
+        },
+      ],
+    });
+
+    // Nếu tìm thấy đơn hàng -> true (đã mua), ngược lại -> false
+    return {
+      EC: 0,
+      data: !!order, 
+    };
+  } catch (error) {
+    console.log(error);
+    return { EC: 1, EM: "Error checking purchase" };
+  }
+};
+
 module.exports = {
   getProductWithPagination,
   createProductService,
@@ -433,4 +499,6 @@ module.exports = {
   toggleFavoriteService,
   getFavoritesService,
   getProductByIdService,
+  createReviewService,
+  checkUserBuyProductService,
 };
