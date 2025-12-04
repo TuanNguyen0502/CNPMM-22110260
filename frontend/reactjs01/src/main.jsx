@@ -18,6 +18,7 @@ import client from "./config/apollo";
 
 import ProductDetail from "./pages/product-detail.jsx";
 import FavoritesPage from "./pages/favorites.jsx";
+import CheckoutPage from "./pages/checkout.jsx";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,7 @@ const router = createBrowserRouter([
 
       { path: "products/:id", element: <ProductDetail /> },
       { path: "favorites", element: <FavoritesPage /> },
+      { path: "checkout", element: <CheckoutPage /> },
     ],
   },
   {

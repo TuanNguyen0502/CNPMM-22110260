@@ -2,11 +2,13 @@ import React from "react";
 import { CartList } from "@tuantp2004/my-shop-cart"; // UI từ thư viện
 import { useCartContext } from "../components/context/cart.context"; // Logic từ Context
 import { Button, Spin } from "antd";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const CartPage = () => {
   const { cartItems, removeFromCart, updateQuantity, total, loading } =
     useCartContext();
+
+  const navigate = useNavigate();
 
   if (loading && cartItems.length === 0) {
     return (
@@ -42,7 +44,11 @@ const CartPage = () => {
         {/* Hiển thị tổng tiền (Lấy từ server nên rất chính xác) */}
         {cartItems.length > 0 && (
           <div style={{ marginTop: "20px", textAlign: "right" }}>
-            <Button type="primary" size="large">
+            <Button
+              type="primary"
+              size="large"
+              onClick={() => navigate("/checkout")}
+            >
               Thanh toán (${total.toLocaleString()})
             </Button>
           </div>

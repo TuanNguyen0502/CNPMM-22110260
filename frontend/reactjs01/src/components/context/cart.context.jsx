@@ -105,6 +105,7 @@ export const CartWrapper = ({ children }) => {
         updateQuantity, // Hàm sửa (đã nối API)
         total, // Tổng tiền (từ DB)
         loading,
+        refreshCart: refetch,
       }}
     >
       {children}

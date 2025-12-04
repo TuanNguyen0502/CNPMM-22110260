@@ -92,6 +92,11 @@ const getFavoritesApi = () => {
   return axios.get(`/v1/api/favorites`);
 };
 
+const placeOrderApi = (name, address, phone) => {
+  const URL_API = "/v1/api/orders";
+  return axios.post(URL_API, { name, address, phone });
+};
+
 export {
   createUserApi,
   loginApi,
@@ -110,4 +115,5 @@ export {
   getSimilarProductsApi,
   toggleFavoriteApi,
   getFavoritesApi,
+  placeOrderApi,
 };
