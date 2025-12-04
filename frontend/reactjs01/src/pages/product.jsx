@@ -33,6 +33,8 @@ import {
 } from "@ant-design/icons";
 import { useCartContext } from "../components/context/cart.context";
 
+import { Link } from "react-router-dom";
+
 const ProductPage = () => {
   const { auth } = useContext(AuthContext); // Lấy thông tin auth để check role
   const [dataSource, setDataSource] = useState([]);
@@ -177,7 +179,19 @@ const ProductPage = () => {
 
   const columns = [
     { title: "ID", dataIndex: "id", key: "id" },
-    { title: "Name", dataIndex: "name", key: "name" },
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      render: (text, record) => (
+        <Link
+          to={`/products/${record.id}`}
+          style={{ color: "#1677ff", fontWeight: "bold" }}
+        >
+          {text}
+        </Link>
+      ),
+    },
     {
       title: "Price",
       dataIndex: "price",

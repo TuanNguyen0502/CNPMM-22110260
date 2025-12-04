@@ -72,6 +72,26 @@ const recreateIndexApi = () => {
   return axios.post(URL_API);
 };
 
+const getProductDetailApi = (id) => {
+  return axios.get(`/v1/api/products/${id}`);
+};
+
+const getProductStatsApi = (id) => {
+  return axios.get(`/v1/api/products/${id}/stats`);
+};
+
+const getSimilarProductsApi = (id) => {
+  return axios.get(`/v1/api/products/${id}/similar`);
+};
+
+const toggleFavoriteApi = (productId) => {
+  return axios.post(`/v1/api/favorites`, { productId });
+};
+
+const getFavoritesApi = () => {
+  return axios.get(`/v1/api/favorites`);
+};
+
 export {
   createUserApi,
   loginApi,
@@ -84,4 +104,10 @@ export {
   searchProductApi,
   syncProductsApi,
   recreateIndexApi,
+
+  getProductDetailApi,
+  getProductStatsApi,
+  getSimilarProductsApi,
+  toggleFavoriteApi,
+  getFavoritesApi,
 };
