@@ -258,7 +258,7 @@ const ProductDetail = () => {
                     style={{ height: 150, objectFit: "contain", padding: 10 }}
                   />
                 }
-                onClick={() => navigate(`/product/${p.id}`)}
+                onClick={() => navigate(`/products/${p.id}`)}
               >
                 <Card.Meta
                   title={p.name}
@@ -294,7 +294,7 @@ const ProductDetail = () => {
                       style={{ height: 120, objectFit: "contain", padding: 10 }}
                     />
                   }
-                  onClick={() => navigate(`/product/${p.id}`)}
+                  onClick={() => navigate(`/products/${p.id}`)}
                 >
                   <div
                     style={{
