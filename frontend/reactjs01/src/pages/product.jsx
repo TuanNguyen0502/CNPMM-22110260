@@ -1,6 +1,5 @@
 import {
   notification,
-  Table,
   Select,
   Button,
   Modal,
@@ -11,10 +10,14 @@ import {
   Popconfirm,
   Card,
   Tag,
+  List,
+  Typography,
+  Image,
+  Tooltip
 } from "antd";
 import { useEffect, useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  getProductApi,
   createProductApi,
   updateProductApi,
   deleteProductApi,
@@ -27,34 +30,34 @@ import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
-  SearchOutlined,
   SyncOutlined,
   ShoppingCartOutlined,
+  EyeOutlined,
+  SafetyCertificateOutlined
 } from "@ant-design/icons";
 import { useCartContext } from "../components/context/cart.context";
 
-import { Link } from "react-router-dom";
+const { Text, Title } = Typography;
 
 const ProductPage = () => {
-  const { auth } = useContext(AuthContext); // Lấy thông tin auth để check role
+  const { auth } = useContext(AuthContext);
   const [dataSource, setDataSource] = useState([]);
   const [loading, setLoading] = useState(false);
   const [current, setCurrent] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(8); // Tăng số lượng item mỗi trang cho dạng lưới
   const [total, setTotal] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState("ALL");
 
-  // Search states
   const [searchQuery, setSearchQuery] = useState("");
   const [priceRange, setPriceRange] = useState([0, 10000]);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [syncLoading, setSyncLoading] = useState(false);
 
-  // State cho Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
 
   const { addToCart } = useCartContext();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchProducts();
@@ -62,28 +65,31 @@ const ProductPage = () => {
 
   const fetchProducts = async () => {
     setLoading(true);
-
-    // Always use Elasticsearch search
     const minPrice = showAdvancedFilters ? priceRange[0] : undefined;
     const maxPrice = showAdvancedFilters ? priceRange[1] : undefined;
-    const res = await searchProductApi(
-      searchQuery,
-      current,
-      pageSize,
-      selectedCategory,
-      minPrice,
-      maxPrice
-    );
+    
+    try {
+      const res = await searchProductApi(
+        searchQuery,
+        current,
+        pageSize,
+        selectedCategory,
+        minPrice,
+        maxPrice
+      );
 
-    if (res && res.EC === 0) {
-      setDataSource(res.data);
-      setTotal(res.total);
+      if (res && res.EC === 0) {
+        setDataSource(res.data);
+        setTotal(res.total);
+      }
+    } catch (error) {
+      console.log(error);
     }
     setLoading(false);
   };
 
   const handleSearch = () => {
-    setCurrent(1); // Reset to first page when searching
+    setCurrent(1);
     fetchProducts();
   };
 
@@ -102,13 +108,12 @@ const ProductPage = () => {
       if (res && res.EC === 0) {
         notification.success({
           message: "Sync Successful",
-          description:
-            res.EM || "Products synced to Elasticsearch successfully!",
+          description: res.EM || "Products synced to Elasticsearch successfully!",
         });
       } else {
         notification.error({
           message: "Sync Failed",
-          description: res.EM || "Failed to sync products to Elasticsearch.",
+          description: res.EM || "Failed to sync products.",
         });
       }
     } catch (error) {
@@ -136,7 +141,7 @@ const ProductPage = () => {
       });
       setIsModalOpen(false);
       form.resetFields();
-      await fetchProducts(); // Load lại bảng
+      await fetchProducts();
     } else {
       notification.error({
         message: "Error",
@@ -161,95 +166,27 @@ const ProductPage = () => {
     }
   };
 
-  // Hàm xử lý khi bấm thêm vào giỏ
-  const handleAddToCart = (product) => {
-    // Map dữ liệu từ API sang cấu trúc thư viện yêu cầu (nếu cần)
-    const itemToAdd = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      // quantity sẽ được thư viện tự xử lý (mặc định là 1)
-    };
-    addToCart(itemToAdd);
+  const handleAddToCart = (e, product) => {
+    e.stopPropagation(); // Ngăn sự kiện click vào card
+    addToCart(product);
     notification.success({
       message: "Thành công",
       description: `Đã thêm ${product.name} vào giỏ hàng`,
     });
   };
 
-  const columns = [
-    { title: "ID", dataIndex: "id", key: "id" },
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-      render: (text, record) => (
-        <Link
-          to={`/products/${record.id}`}
-          style={{ color: "#1677ff", fontWeight: "bold" }}
-        >
-          {text}
-        </Link>
-      ),
-    },
-    {
-      title: "Price",
-      dataIndex: "price",
-      key: "price",
-      render: (value) => `${value.toLocaleString()} đ`,
-    },
-    { title: "Category", dataIndex: "category", key: "category" },
-    {
-      title: "Buy",
-      key: "buy",
-      render: (_, record) => (
-        <Button
-          type="primary"
-          icon={<ShoppingCartOutlined />}
-          onClick={() => handleAddToCart(record)}
-        >
-          Add
-        </Button>
-      ),
-    },
-    ...(auth.user.role === "Admin"
-      ? [
-          {
-            title: "Action",
-            key: "action",
-            render: (_, record) => (
-              <Space>
-                <Button
-                  icon={<EditOutlined />}
-                  type="primary"
-                  ghost
-                  onClick={() => {
-                    setIsModalOpen(true);
-                    form.setFieldsValue(record); // Fill dữ liệu cũ vào form
-                  }}
-                >
-                  Edit
-                </Button>
-                <Popconfirm
-                  title="Delete the product"
-                  description="Are you sure to delete this product?"
-                  onConfirm={() => handleDelete(record.id)}
-                  okText="Yes"
-                  cancelText="No"
-                >
-                  <Button icon={<DeleteOutlined />} danger>
-                    Delete
-                  </Button>
-                </Popconfirm>
-              </Space>
-            ),
-          },
-        ]
-      : []),
-  ];
+  const handleEdit = (e, product) => {
+    e.stopPropagation();
+    setIsModalOpen(true);
+    form.setFieldsValue(product);
+  };
+
+  const handleDeleteClick = (e) => {
+    e.stopPropagation();
+  };
 
   return (
-    <div style={{ padding: 30 }}>
+    <div style={{ padding: "30px", maxWidth: 1400, margin: "0 auto" }}>
       <div
         style={{
           display: "flex",
@@ -258,7 +195,7 @@ const ProductPage = () => {
           marginBottom: 20,
         }}
       >
-        <h2>Danh sách sản phẩm</h2>
+        <Title level={2} style={{ margin: 0 }}>Danh sách sản phẩm</Title>
 
         <Space>
           {auth.user.role === "Admin" && (
@@ -276,17 +213,16 @@ const ProductPage = () => {
                 icon={<PlusOutlined />}
                 onClick={() => {
                   setIsModalOpen(true);
-                  form.resetFields(); // Xóa form cũ để nhập mới
+                  form.resetFields();
                 }}
               >
-                Add New
+                Thêm mới
               </Button>
             </>
           )}
         </Space>
       </div>
 
-      {/* Search Interface */}
       <ProductSearchComponent
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -304,92 +240,187 @@ const ProductPage = () => {
         loading={loading}
       />
 
-      {/* Search Results Info */}
       {(searchQuery || selectedCategory !== "ALL" || showAdvancedFilters) && (
         <Card size="small" style={{ marginBottom: 16 }}>
           <Space wrap>
-            <Tag color="blue">{total} results found</Tag>
-            {searchQuery && <Tag color="green">Search: "{searchQuery}"</Tag>}
+            <Tag color="blue">{total} kết quả</Tag>
+            {searchQuery && <Tag color="green">Tìm kiếm: "{searchQuery}"</Tag>}
             {selectedCategory !== "ALL" && (
-              <Tag color="orange">Category: {selectedCategory}</Tag>
+              <Tag color="orange">Danh mục: {selectedCategory}</Tag>
             )}
-            {showAdvancedFilters &&
-              (priceRange[0] > 0 || priceRange[1] < 10000) && (
-                <Tag color="purple">
-                  Price: ${priceRange[0]} - ${priceRange[1]}
-                </Tag>
-              )}
-            <Tag color="gold">Powered by Elasticsearch</Tag>
           </Space>
         </Card>
       )}
 
-      <Table
+      {/* Thay Table bằng List + Card */}
+      <List
         loading={loading}
-        bordered
+        grid={{
+          gutter: 16,
+          xs: 1,
+          sm: 2,
+          md: 3,
+          lg: 4,
+          xl: 4,
+          xxl: 5,
+        }}
         dataSource={dataSource}
-        columns={columns}
-        rowKey="id"
         pagination={{
           current: current,
           pageSize: pageSize,
           total: total,
+          onChange: (page, size) => {
+            setCurrent(page);
+            setPageSize(size);
+          },
           showSizeChanger: true,
-          pageSizeOptions: ["5", "10", "20"],
+          pageSizeOptions: ["8", "16", "24"],
+          align: "center",
         }}
-        onChange={(pagination) => {
-          if (pagination.current !== current) setCurrent(pagination.current);
-          if (pagination.pageSize !== pageSize) {
-            setPageSize(pagination.pageSize);
-            setCurrent(1);
-          }
-        }}
+        renderItem={(item) => (
+          <List.Item>
+            <Card
+              hoverable
+              style={{ height: "100%", display: "flex", flexDirection: "column" }}
+              bodyStyle={{ flex: 1, display: "flex", flexDirection: "column" }}
+              cover={
+                <div style={{ padding: 10, height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Image
+                      alt={item.name}
+                      src={item.image || "https://placehold.co/200x200?text=No+Image"}
+                      preview={false}
+                      style={{ 
+                        maxHeight: "100%", 
+                        maxWidth: "100%", 
+                        objectFit: "contain",
+                        transition: "transform 0.3s"
+                      }}
+                    />
+                </div>
+              }
+              onClick={() => navigate(`/products/${item.id}`)}
+              actions={[
+                <Tooltip title="Thêm vào giỏ">
+                    <ShoppingCartOutlined 
+                        key="cart" 
+                        style={{ fontSize: 18, color: "#1677ff" }} 
+                        onClick={(e) => handleAddToCart(e, item)}
+                    />
+                </Tooltip>,
+                <Tooltip title="Xem chi tiết">
+                    <EyeOutlined 
+                        key="view" 
+                        style={{ fontSize: 18 }} 
+                        onClick={() => navigate(`/products/${item.id}`)}
+                    />
+                </Tooltip>,
+                ...(auth.user.role === "Admin" ? [
+                    <Tooltip title="Chỉnh sửa">
+                        <EditOutlined 
+                            key="edit" 
+                            style={{ fontSize: 18, color: "#faad14" }} 
+                            onClick={(e) => handleEdit(e, item)}
+                        />
+                    </Tooltip>,
+                    <Popconfirm
+                        title="Xóa sản phẩm"
+                        description="Bạn có chắc muốn xóa sản phẩm này?"
+                        onConfirm={() => handleDelete(item.id)}
+                        onCancel={(e) => e.stopPropagation()}
+                        okText="Có"
+                        cancelText="Không"
+                    >
+                        <DeleteOutlined 
+                            key="delete" 
+                            style={{ fontSize: 18, color: "#ff4d4f" }} 
+                            onClick={handleDeleteClick} // Chỉ chặn click, Popconfirm sẽ handle
+                        />
+                    </Popconfirm>
+                ] : [])
+              ]}
+            >
+              <div style={{ flex: 1 }}>
+                <Tag color={item.category === 'Electronics' ? 'cyan' : item.category === 'Clothing' ? 'purple' : 'gold'}>
+                    {item.category}
+                </Tag>
+                <Title level={5} ellipsis={{ rows: 2 }} style={{ margin: "10px 0", height: 48 }}>
+                  <Link 
+                    to={`/products/${item.id}`} 
+                    style={{ color: "inherit" }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {item.name}
+                  </Link>
+                </Title>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text type="danger" strong style={{ fontSize: 18 }}>
+                        {item.price?.toLocaleString()} đ
+                    </Text>
+                    {item.category === 'Electronics' && (
+                        <SafetyCertificateOutlined style={{ color: '#52c41a' }} />
+                    )}
+                </div>
+              </div>
+            </Card>
+          </List.Item>
+        )}
       />
 
+      {/* Modal giữ nguyên */}
       <Modal
-        title={form.getFieldValue("id") ? "Update Product" : "Create Product"}
+        title={form.getFieldValue("id") ? "Cập nhật sản phẩm" : "Thêm mới sản phẩm"}
         open={isModalOpen}
         onOk={() => form.submit()}
-        onCancel={() => setIsModalOpen(false)}
-        okText="Save"
+        onCancel={() => {
+            setIsModalOpen(false);
+            form.resetFields();
+        }}
+        okText="Lưu"
+        cancelText="Hủy"
+        maskClosable={false}
       >
         <Form form={form} layout="vertical" onFinish={onFinish}>
-          <Form.Item name="id" hidden>
-            <Input />
-          </Form.Item>
+          <Form.Item name="id" hidden><Input /></Form.Item>
 
           <Form.Item
-            label="Name"
+            label="Tên sản phẩm"
             name="name"
-            rules={[{ required: true, message: "Please input product name!" }]}
+            rules={[{ required: true, message: "Vui lòng nhập tên sản phẩm!" }]}
           >
             <Input />
           </Form.Item>
 
           <Form.Item
-            label="Price"
+            label="Giá tiền"
             name="price"
-            rules={[{ required: true, message: "Please input price!" }]}
+            rules={[{ required: true, message: "Vui lòng nhập giá!" }]}
           >
-            <InputNumber style={{ width: "100%" }} />
+            <InputNumber 
+                style={{ width: "100%" }} 
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                addonAfter="VND"
+            />
           </Form.Item>
 
           <Form.Item
-            label="Category"
+            label="Danh mục"
             name="category"
-            rules={[{ required: true, message: "Please select category!" }]}
+            rules={[{ required: true, message: "Vui lòng chọn danh mục!" }]}
           >
             <Select
               options={[
                 { value: "Electronics", label: "Điện tử" },
                 { value: "Clothing", label: "Quần áo" },
                 { value: "Books", label: "Sách" },
+                { value: "Furniture", label: "Nội thất" },
               ]}
             />
           </Form.Item>
 
-          <Form.Item label="Image URL" name="image">
-            <Input />
+          <Form.Item label="Link Hình ảnh" name="image">
+            <Input placeholder="https://example.com/image.jpg" />
           </Form.Item>
         </Form>
       </Modal>
