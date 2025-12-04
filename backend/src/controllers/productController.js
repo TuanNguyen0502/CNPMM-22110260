@@ -5,6 +5,11 @@ const {
   deleteProductService,
   searchProductsService,
   syncProductsToES,
+
+  getSimilarProductsService,
+  getProductStatsService,
+  toggleFavoriteService,
+  getFavoritesService,
 } = require("../services/productService");
 const { recreateProductsIndex } = require("../config/elasticsearch");
 
@@ -63,13 +68,15 @@ const handleSyncProducts = async (req, res) => {
 
 const handleRecreateIndex = async (req, res) => {
   const result = await recreateProductsIndex();
-  
+
   if (result.success) {
     // After recreating index, sync all products
     const syncResult = await syncProductsToES();
     return res.status(200).json({
       EC: 0,
-      EM: `${result.message}. ${syncResult.EM || 'Products synced successfully'}`,
+      EM: `${result.message}. ${
+        syncResult.EM || "Products synced successfully"
+      }`,
     });
   } else {
     return res.status(500).json({
@@ -77,6 +84,38 @@ const handleRecreateIndex = async (req, res) => {
       EM: result.message,
     });
   }
+};
+
+const handleGetSimilarProducts = async (req, res) => {
+  const { id } = req.params;
+  const data = await getSimilarProductsService(id);
+  return res.status(200).json(data);
+};
+
+const handleGetProductStats = async (req, res) => {
+  const { id } = req.params;
+  const data = await getProductStatsService(id);
+  return res.status(200).json(data);
+};
+
+const handleToggleFavorite = async (req, res) => {
+  const { productId } = req.body;
+  const User = require("../models/user");
+  const user = await User.findOne({ where: { email: req.user.email } });
+
+  if (!user) return res.status(401).json({ EC: 1, EM: "User not found" });
+
+  const data = await toggleFavoriteService(user.id, productId);
+  return res.status(200).json(data);
+};
+
+const handleGetFavorites = async (req, res) => {
+  const User = require("../models/user");
+  const user = await User.findOne({ where: { email: req.user.email } });
+  if (!user) return res.status(401).json({ EC: 1, EM: "User not found" });
+
+  const data = await getFavoritesService(user.id);
+  return res.status(200).json(data);
 };
 
 module.exports = {
@@ -87,4 +126,9 @@ module.exports = {
   handleSearchProducts,
   handleSyncProducts,
   handleRecreateIndex,
+
+  handleGetSimilarProducts,
+  handleGetProductStats,
+  handleToggleFavorite,
+  handleGetFavorites,
 };

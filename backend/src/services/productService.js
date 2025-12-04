@@ -2,6 +2,11 @@ const Product = require("../models/product");
 const { Op } = require("sequelize");
 const { client, PRODUCTS_INDEX } = require("../config/elasticsearch");
 
+const Favorite = require("../models/favorite");
+const Review = require("../models/review");
+const { OrderItem } = require("../models/order");
+const User = require("../models/user");
+
 // Helper function to index a product to Elasticsearch
 const indexProductToES = async (product) => {
   try {
@@ -282,6 +287,126 @@ const syncProductsToES = async () => {
   }
 };
 
+const getSimilarProductsService = async (productId) => {
+  try {
+    // Lấy thông tin sản phẩm gốc để kiểm tra tồn tại
+    const product = await Product.findByPk(productId);
+    if (!product) return { EC: 1, EM: "Product not found", data: [] };
+
+    // Query 'more_like_this' của Elasticsearch
+    const result = await client.search({
+      index: PRODUCTS_INDEX,
+      body: {
+        size: 5, // Lấy 5 sản phẩm tương tự
+        query: {
+          more_like_this: {
+            fields: ["name", "category"], // So sánh dựa trên Tên và Danh mục
+            like: [
+              {
+                _index: PRODUCTS_INDEX,
+                _id: productId.toString(),
+              },
+            ],
+            min_term_freq: 1,
+            min_doc_freq: 1,
+          },
+        },
+      },
+    });
+
+    const products = result.hits.hits.map((hit) => {
+      return { ...hit._source, id: hit._id }; // Map lại id cho chắc chắn
+    });
+
+    return { EC: 0, data: products };
+  } catch (error) {
+    console.log("Error getting similar products:", error);
+    // Nếu lỗi ES, trả về mảng rỗng để không crash app
+    return { EC: 0, data: [] };
+  }
+};
+
+const getProductStatsService = async (productId) => {
+  try {
+    // Đếm tổng số lượng đã bán từ bảng OrderItem
+    const soldCount =
+      (await OrderItem.sum("quantity", {
+        where: { productId: productId },
+      })) || 0;
+
+    // Lấy danh sách review và tổng số review
+    const { count, rows: reviews } = await Review.findAndCountAll({
+      where: { productId: productId },
+      include: [
+        {
+          model: User,
+          attributes: ["name", "email"], // Lấy tên người bình luận
+        },
+      ],
+      order: [["createdAt", "DESC"]], // Sắp xếp theo ngày tạo mới nhất
+      limit: 5, // Chỉ lấy 5 comment mới nhất để hiển thị nhanh
+    });
+
+    return {
+      EC: 0,
+      data: {
+        sold: soldCount,
+        totalReviews: count,
+        reviews: reviews,
+      },
+    };
+  } catch (error) {
+    console.log(error);
+    return { EC: 1, EM: "Error getting stats" };
+  }
+};
+
+const toggleFavoriteService = async (userId, productId) => {
+  try {
+    // Kiểm tra đã like chưa
+    const existing = await Favorite.findOne({
+      where: { userId: userId, productId: productId },
+    });
+
+    if (existing) {
+      await existing.destroy();
+      return { EC: 0, EM: "Removed from favorites", status: false }; // status false = chưa like
+    } else {
+      await Favorite.create({ userId, productId });
+      return { EC: 0, EM: "Added to favorites", status: true }; // status true = đã like
+    }
+  } catch (error) {
+    console.log(error);
+    return { EC: 1, EM: "Error toggling favorite" };
+  }
+};
+
+const getFavoritesService = async (userId) => {
+  try {
+    // Lấy danh sách Product mà User này đã like
+    // Dùng User.findByPk kết hợp include Product thông qua bảng phụ Favorite
+    const userWithFavorites = await User.findByPk(userId, {
+      include: [
+        {
+          model: Product,
+          through: { attributes: [] }, // Không lấy dữ liệu bảng trung gian
+        },
+      ],
+    });
+
+    if (!userWithFavorites) return { EC: 1, EM: "User not found" };
+
+    return {
+      EC: 0,
+      data: userWithFavorites.Products, // Sequelize tự động đặt tên là Products (số nhiều)
+    };
+  } catch (error) {
+    console.log(error);
+    return { EC: 1, EM: "Error fetching favorites" };
+  }
+};
+
+// --- CẬP NHẬT MODULE.EXPORTS ---
 module.exports = {
   getProductWithPagination,
   createProductService,
@@ -291,4 +416,9 @@ module.exports = {
   syncProductsToES,
   indexProductToES,
   removeProductFromES,
+
+  getSimilarProductsService,
+  getProductStatsService,
+  toggleFavoriteService,
+  getFavoritesService,
 };

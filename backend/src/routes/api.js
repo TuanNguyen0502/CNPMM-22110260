@@ -15,6 +15,11 @@ const {
   handleSearchProducts,
   handleSyncProducts,
   handleRecreateIndex,
+
+  handleGetSimilarProducts,
+  handleGetProductStats,
+  handleToggleFavorite,
+  handleGetFavorites
 } = require("../controllers/productController");
 
 const auth = require("../middleware/auth");
@@ -69,5 +74,13 @@ routerAPI.post("/products/recreate-index", checkAdmin, handleRecreateIndex);
 routerAPI.post("/products", checkAdmin, handleCreateProduct);
 routerAPI.put("/products", checkAdmin, handleUpdateProduct);
 routerAPI.delete("/products/:id", checkAdmin, handleDeleteProduct);
+
+// 1. Route cho Sản phẩm tương tự & Thống kê
+routerAPI.get("/products/:id/similar", handleGetSimilarProducts);
+routerAPI.get("/products/:id/stats", handleGetProductStats);
+
+// 2. Route cho Yêu thích
+routerAPI.post("/favorites", handleToggleFavorite);
+routerAPI.get("/favorites", handleGetFavorites);
 
 module.exports = routerAPI;
