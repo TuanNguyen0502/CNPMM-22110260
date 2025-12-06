@@ -8,13 +8,19 @@ import {
   REMOVE_CART_ITEM,
 } from "../../graphql/cart.queries";
 
+// Tạo Context
 export const CartContext = createContext(null);
 
+// Tạo Provider Wrapper
+// Wrapper này sẽ bao bọc các component cần dùng giỏ hàng
+// Nó sẽ chịu trách nhiệm kết nối với GraphQL Server
+// để lấy dữ liệu giỏ hàng thực từ DB
+// Sau đó cung cấp dữ liệu đã được "chuẩn hóa" cho các component con sử dụng
 export const CartWrapper = ({ children }) => {
   // 1. Fetch dữ liệu từ GraphQL Server (Luôn lấy mới nhất)
   const { data, loading, refetch } = useQuery(GET_MY_CART, {
-    fetchPolicy: "network-only",
-    notifyOnNetworkStatusChange: true,
+    fetchPolicy: "network-only", // Luôn lấy dữ liệu mới nhất từ server
+    notifyOnNetworkStatusChange: true, // Cho phép loading khi refetch
   });
 
   // 2. Các hàm Mutation để thay đổi dữ liệu Server
@@ -28,7 +34,9 @@ export const CartWrapper = ({ children }) => {
 
   // 3. EFFECT QUAN TRỌNG: Đồng bộ dữ liệu Server -> UI Thư viện
   useEffect(() => {
+    // Kiểm tra dữ liệu trả về từ server
     if (data?.myCart) {
+      // Lấy mảng items từ server
       const serverItems = data.myCart.items || [];
 
       // BƯỚC LỌC QUAN TRỌNG: Loại bỏ các item bị null (do sản phẩm gốc bị xóa)

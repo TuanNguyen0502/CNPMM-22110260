@@ -28,19 +28,24 @@ const FavoritesPage = () => {
 
   const fetchFavorites = async () => {
     setLoading(true);
+    // Lấy danh sách yêu thích từ API
     const res = await getFavoritesApi();
+    // Cập nhật state nếu thành công
     if (res && res.EC === 0) {
       setFavorites(res.data);
     }
     setLoading(false);
   };
 
+  // Load danh sách yêu thích khi component được mount
   useEffect(() => {
     fetchFavorites();
   }, []);
 
+  // Xử lý bỏ yêu thích
   const handleUnfavorite = async (e, productId) => {
     e.stopPropagation(); // Ngăn sự kiện click vào Card
+    // Gọi API để bỏ yêu thích
     const res = await toggleFavoriteApi(productId);
     if (res && res.EC === 0) {
       notification.success({ message: "Đã xóa khỏi danh sách yêu thích" });
@@ -49,7 +54,8 @@ const FavoritesPage = () => {
   };
 
   const handleAddToCart = (e, product) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Ngăn sự kiện click vào Card
+    // Thêm sản phẩm vào giỏ hàng
     addToCart(product);
   };
 

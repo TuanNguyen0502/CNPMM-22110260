@@ -6,12 +6,14 @@ import { AuthContext } from "./components/context/auth.context";
 import { Spin } from "antd";
 
 function App() {
+  // Access authentication context
   const { setAuth, appLoading, setAppLoading } = useContext(AuthContext);
 
+  // On component mount, check for existing access token and fetch user account info
   useEffect(() => {
     const fetchAccount = async () => {
       setAppLoading(true);
-      
+
       try {
         const res = await axios.get("/v1/api/account");
 
@@ -38,7 +40,7 @@ function App() {
           },
         });
       }
-      
+
       setAppLoading(false);
     };
 

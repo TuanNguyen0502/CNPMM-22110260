@@ -58,6 +58,7 @@ const ProductDetail = () => {
   const [form] = Form.useForm();
   const [canReview, setCanReview] = useState(false);
 
+  // Lấy dữ liệu khi vào trang hoặc chuyển sản phẩm
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -108,6 +109,7 @@ const ProductDetail = () => {
 
   // Hàm xử lý lưu sản phẩm đã xem
   const handleRecentlyViewed = (prod) => {
+    // Lấy danh sách đã xem từ localStorage
     let viewed = JSON.parse(localStorage.getItem("recently_viewed")) || [];
     // Xóa trùng
     viewed = viewed.filter((item) => item.id !== prod.id);
@@ -126,6 +128,7 @@ const ProductDetail = () => {
   // Hàm xử lý Yêu thích
   const handleToggleFavorite = async () => {
     try {
+      // Gọi API chuyển trạng thái yêu thích
       const res = await toggleFavoriteApi(id);
       if (res && res.EC === 0) {
         setIsFavorite(res.status); // Backend trả về status: true (đã like) / false (chưa like)
@@ -136,9 +139,11 @@ const ProductDetail = () => {
     }
   };
 
+  // Kiểm tra người dùng đã mua hàng chưa để cho phép đánh giá
   useEffect(() => {
     const checkBuy = async () => {
       if (auth.isAuthenticated && id) {
+        // Gọi API kiểm tra người dùng đã mua sản phẩm chưa
         const res = await checkUserBuyProductApi(id);
         if (res && res.EC === 0) {
           setCanReview(res.data); // data là true/false
@@ -249,6 +254,7 @@ const ProductDetail = () => {
         <Col span={24}>
           <Card title={`Đánh giá & Bình luận (${stats.totalReviews})`}>
             {/* --- FORM ĐÁNH GIÁ --- */}
+            {/* Kiểm tra người dùng đã đăng nhập chưa */}
             {auth.isAuthenticated ? (
               canReview ? (
                 // TRƯỜNG HỢP 1: Đã đăng nhập + Đã mua hàng -> Hiện Form

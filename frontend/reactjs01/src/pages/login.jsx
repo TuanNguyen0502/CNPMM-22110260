@@ -10,16 +10,21 @@ const LoginPage = () => {
   const { setAuth } = useContext(AuthContext);
 
   const onFinish = async (values) => {
+    // Lấy dữ liệu từ form
     const { email, password } = values;
 
+    // Gọi API đăng nhập
     const res = await loginApi(email, password);
 
+    // Xử lý kết quả trả về từ API
     if (res && res.EC === 0) {
+      // Lưu token vào localStorage
       localStorage.setItem("access_token", res.access_token);
       notification.success({
         message: "LOGIN USER",
         description: "Success",
       });
+      // Cập nhật trạng thái xác thực người dùng
       setAuth({
         isAuthenticated: true,
         user: {
@@ -28,6 +33,7 @@ const LoginPage = () => {
           role: res?.user?.role ?? "",
         },
       });
+      // Chuyển hướng về trang chủ
       navigate("/");
     } else {
       notification.error({

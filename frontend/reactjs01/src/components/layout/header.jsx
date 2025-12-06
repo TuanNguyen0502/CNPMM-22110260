@@ -13,14 +13,18 @@ import { useCartContext } from "../context/cart.context";
 
 const Header = () => {
   const navigate = useNavigate();
+  // Get auth state and setAuth function from AuthContext
   const { auth, setAuth } = useContext(AuthContext);
+  // State to manage the currently selected menu item
   const [current, setCurrent] = useState("home");
+  // Get cart items from CartContext
   const { cartItems } = useCartContext();
 
   const onClick = (e) => {
     setCurrent(e.key);
     if (e.key === "logout") {
       localStorage.removeItem("access_token");
+      // Reset auth state on logout
       setAuth({
         isAuthenticated: false,
         user: {
@@ -39,8 +43,10 @@ const Header = () => {
       key: "home",
       icon: <HomeOutlined />,
     },
+    // Add menu items conditionally based on authentication status and user role
     ...(auth.isAuthenticated
       ? [
+          // Add admin-specific menu item if user role is Admin
           ...(auth.user.role === "Admin"
             ? [
                 {
@@ -50,6 +56,7 @@ const Header = () => {
                 },
               ]
             : []),
+          // Common menu items for all authenticated users
           {
             label: <Link to={"/products"}>Products</Link>,
             key: "products",
@@ -73,6 +80,7 @@ const Header = () => {
         ]
       : []),
 
+    // User submenu for login/logout
     {
       label: `Welcome ${auth?.user?.email ?? ""}`,
       key: "SubMenu",

@@ -10,6 +10,7 @@ const CartPage = () => {
 
   const navigate = useNavigate();
 
+  // Hiển thị loading khi đang tải giỏ hàng
   if (loading && cartItems.length === 0) {
     return (
       <div style={{ textAlign: "center", marginTop: 50 }}>
@@ -41,7 +42,7 @@ const CartPage = () => {
           onUpdate={updateQuantity}
         />
 
-        {/* Hiển thị tổng tiền (Lấy từ server nên rất chính xác) */}
+        {/* Hiển thị tổng tiền */}
         {cartItems.length > 0 && (
           <div style={{ marginTop: "20px", textAlign: "right" }}>
             <Button

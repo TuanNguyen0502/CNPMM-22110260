@@ -23,6 +23,7 @@ const CheckoutPage = () => {
 
   // Chỉ lấy những sản phẩm "được chọn" để thanh toán
   const onFinish = async (values) => {
+    // Lấy thông tin từ form
     const { name, phone, address } = values;
 
     if (cartItems.length === 0) {
@@ -30,6 +31,7 @@ const CheckoutPage = () => {
       return;
     }
 
+    // Gọi API đặt hàng
     const res = await placeOrderApi(name, address, phone);
     if (res && res.EC === 0) {
       // Gọi hàm để cập nhật lại giỏ hàng (về 0)

@@ -1,5 +1,6 @@
 import { createContext, useState } from "react";
 
+// Create Auth Context
 export const AuthContext = createContext({
   isAuthenticated: false,
   user: {
@@ -9,6 +10,7 @@ export const AuthContext = createContext({
   appLoading: true,
 });
 
+// Auth Context Provider Wrapper
 export const AuthWrapper = (props) => {
   const [auth, setAuth] = useState({
     isAuthenticated: false,
