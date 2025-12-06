@@ -17,29 +17,40 @@ const User = require("./models/user");
 const typeDefs = require("./graphql/typeDefs");
 const resolvers = require("./graphql/resolvers");
 
+// --- KHỞI TẠO ỨNG DỤNG EXPRESS ---
 const app = express();
+// Cấu hình cổng lắng nghe
 const PORT = process.env.PORT || 8080;
 
+// --- CẤU HÌNH MIDDLEWARE CHUNG ---
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Cấu hình view engine
 configViewEngine(app);
 
-const webAPI = express.Router();
+// --- CẤU HÌNH ROUTE CHUNG ---
+// Cấu hình route Web
+const webAPI = express.Router()
+// Route trang chủ
 webAPI.get("/", getHomePage);
+// Thêm các route web khác tại đây
 app.use("/", webAPI);
+// Cấu hình route API
+// Tất cả route trong apiRoutes sẽ có tiền tố là /v1/api
 app.use("/v1/api", apiRoutes);
 
 // --- CẤU HÌNH GRAPHQL ---
 const startGraphQLServer = async () => {
   const server = new ApolloServer({
-    typeDefs,
-    resolvers,
+    typeDefs, // GraphQL schema
+    resolvers, // GraphQL resolvers
   });
 
   await server.start();
 
+  // Middleware để xử lý các request GraphQL
   app.use(
     "/graphql",
     cors(),
@@ -51,6 +62,7 @@ const startGraphQLServer = async () => {
         if (!token) return { user: null };
 
         try {
+          // Giải mã token để lấy thông tin user
           const decoded = jwt.verify(token, process.env.JWT_SECRET);
           // Tìm user trong DB để chắc chắn user tồn tại và lấy ID chuẩn
           const user = await User.findOne({ where: { email: decoded.email } });
@@ -65,7 +77,9 @@ const startGraphQLServer = async () => {
 
 (async () => {
   try {
+    // Kết nối tới database
     await connection();
+    // Khởi động server GraphQL
     await startGraphQLServer();
 
     app.listen(PORT, () => {

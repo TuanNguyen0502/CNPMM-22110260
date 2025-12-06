@@ -141,6 +141,9 @@ const searchProductsService = async (
 
 const getProductWithPagination = async (page, limit, category) => {
   try {
+    // offset là vị trí bắt đầu lấy dữ liệu
+    // limit là số lượng bản ghi lấy ra
+    // page là số trang hiện tại
     let offset = (page - 1) * limit;
     let whereClause = {};
 
@@ -291,6 +294,7 @@ const getSimilarProductsService = async (productId) => {
   try {
     // Lấy thông tin sản phẩm gốc để kiểm tra tồn tại
     const product = await Product.findByPk(productId);
+    // Nếu không tìm thấy sản phẩm, trả về lỗi
     if (!product) return { EC: 1, EM: "Product not found", data: [] };
 
     // Query 'more_like_this' của Elasticsearch
@@ -339,7 +343,7 @@ const getProductStatsService = async (productId) => {
       where: { productId: productId },
       include: [
         {
-          model: User,
+          model: User, // Kèm thông tin User (người bình luận)
           attributes: ["name", "email"], // Lấy tên người bình luận
         },
       ],
@@ -384,11 +388,13 @@ const toggleFavoriteService = async (userId, productId) => {
 const getFavoritesService = async (userId) => {
   try {
     // Lấy danh sách Product mà User này đã like
+    // findByPk: Tìm theo primary key (id)
     // Dùng User.findByPk kết hợp include Product thông qua bảng phụ Favorite
+    // Sequelize sẽ tự động hiểu mối quan hệ many-to-many này
     const userWithFavorites = await User.findByPk(userId, {
       include: [
         {
-          model: Product,
+          model: Product, // Lấy các Product mà user này đã like
           through: { attributes: [] }, // Không lấy dữ liệu bảng trung gian
         },
       ],
@@ -408,6 +414,8 @@ const getFavoritesService = async (userId) => {
 
 const getProductByIdService = async (id) => {
   try {
+    // Lấy thông tin sản phẩm theo ID
+    // findByPk = find by primary key
     const product = await Product.findByPk(id);
     if (product) {
       return { EC: 0, data: product };
@@ -466,7 +474,7 @@ const checkUserBuyProductService = async (userId, productId) => {
       where: { userId: userId },
       include: [
         {
-          model: OrderItem,
+          model: OrderItem, // Kiểm tra trong các OrderItem
           where: { productId: productId },
           required: true, // Inner Join: Bắt buộc phải có sản phẩm này trong đơn
         },
@@ -476,7 +484,7 @@ const checkUserBuyProductService = async (userId, productId) => {
     // Nếu tìm thấy đơn hàng -> true (đã mua), ngược lại -> false
     return {
       EC: 0,
-      data: !!order, 
+      data: !!order,
     };
   } catch (error) {
     console.log(error);

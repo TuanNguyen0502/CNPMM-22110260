@@ -33,7 +33,9 @@ const resolvers = {
     items: (parent) => parent.CartItems, // Map field 'items' của GraphQL sang 'CartItems' của Sequelize
   },
 
+  // Resolvers cho các truy vấn GraphQL và mutations liên quan đến giỏ hàng
   Query: {
+    // Lấy giỏ hàng của user hiện tại
     myCart: async (_, __, context) => {
       // context.user được lấy từ middleware xác thực
       if (!context.user) throw new Error("Unauthorized");
@@ -51,7 +53,9 @@ const resolvers = {
     },
   },
 
+  // Mutations để thao tác với giỏ hàng như thêm, sửa, xóa sản phẩm trong giỏ hàng
   Mutation: {
+    // Thêm sản phẩm vào giỏ hàng
     addToCart: async (_, { productId, quantity }, context) => {
       if (!context.user) throw new Error("Unauthorized");
       const cart = await getOrCreateCart(context.user.id);

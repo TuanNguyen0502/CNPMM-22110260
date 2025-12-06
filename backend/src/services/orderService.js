@@ -7,12 +7,18 @@ const createOrderService = async (user, orderInfo) => {
   try {
     // Lấy giỏ hàng của user
     const cart = await Cart.findOne({ where: { userId: user.id } });
+    // Kiểm tra xem giỏ hàng có tồn tại không
+    // Nếu không tồn tại, trả về lỗi
+    // EC là Error Code, EM là Error Message
+    // 1 là mã lỗi chung (như không tìm thấy, lỗi server, v.v.)
+    // 2 là mã lỗi cụ thể hơn (như thiếu thông tin, v.v.)
+    // 0 là không có lỗi
     if (!cart) return { EC: 1, EM: "Cart not found" };
 
     // Lấy các sản phẩm ĐƯỢC CHỌN (isSelected = true) trong giỏ
     const cartItems = await CartItem.findAll({
       where: { cartId: cart.id, isSelected: true },
-      include: [Product],
+      include: [Product], // Bao gồm thông tin sản phẩm
     });
 
     if (cartItems.length === 0) {
@@ -45,8 +51,10 @@ const createOrderService = async (user, orderInfo) => {
     // Tạo chi tiết đơn hàng
     const itemsToCreate = orderItemsData.map((item) => ({
       ...item,
-      orderId: newOrder.id,
+      orderId: newOrder.id, // Thêm orderId vào mỗi chi tiết đơn hàng, id lấy từ đơn hàng mới tạo
     }));
+    // Tạo chi tiết đơn hàng trong cơ sở dữ liệu
+    // Sử dụng bulkCreate để tạo nhiều bản ghi cùng lúc
     await OrderItem.bulkCreate(itemsToCreate);
 
     // Xóa các sản phẩm đã mua khỏi giỏ hàng
@@ -54,6 +62,7 @@ const createOrderService = async (user, orderInfo) => {
       where: { cartId: cart.id, isSelected: true },
     });
 
+    // Trả về kết quả thành công
     return {
       EC: 0,
       EM: "Order placed successfully",

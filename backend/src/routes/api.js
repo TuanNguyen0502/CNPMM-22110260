@@ -7,6 +7,8 @@ const {
   getUser,
   getAccount,
 } = require("../controllers/userController");
+const { handlePlaceOrder } = require("../controllers/orderController");
+
 const {
   getProducts,
   handleCreateProduct,
@@ -34,16 +36,15 @@ const {
 const { apiLimiter, loginLimiter } = require("../middleware/limiter");
 const { checkAdmin } = require("../middleware/role");
 
-const { handlePlaceOrder } = require("../controllers/orderController");
-
 const routerAPI = express.Router();
 
 // 1. Áp dụng Authentication cho toàn bộ router (trừ whitelist định nghĩa trong auth.js)
 routerAPI.use(auth);
 
-// 2. Áp dụng Rate Limiting chung cho toàn bộ API (Tuỳ chọn)
+// 2. Áp dụng Rate Limiting chung cho toàn bộ API
 routerAPI.use(apiLimiter);
 
+// API Test
 routerAPI.get("/", (req, res) => {
   return res.status(200).json({ message: "API is working" });
 });
@@ -62,6 +63,7 @@ routerAPI.post(
 // API User: Thêm Authorization (Chỉ Admin mới xem được danh sách user)
 routerAPI.get("/user", checkAdmin, getUser);
 
+// delay middleware để mô phỏng thời gian xử lý lâu
 routerAPI.get("/account", delay, getAccount);
 
 // Route này nằm sau middleware 'auth' và không thuộc whitelist, nên bắt buộc phải đăng nhập mới gọi được.

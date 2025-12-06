@@ -9,10 +9,13 @@ const handlePlaceOrder = async (req, res) => {
   // Query lại DB để chắc chắn lấy đúng ID
   const user = await User.findOne({ where: { email: req.user.email } });
 
+  // Kiểm tra user tồn tại
   if (!user) return res.status(401).json({ EC: 1, EM: "User not found" });
 
+  // Gọi service tạo đơn hàng
   const result = await createOrderService(user, { name, address, phone });
 
+  // Trả về kết quả cho client
   return res.status(200).json(result);
 };
 
