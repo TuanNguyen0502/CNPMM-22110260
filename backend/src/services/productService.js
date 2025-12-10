@@ -46,7 +46,7 @@ const removeProductFromES = async (productId) => {
 const searchProductsService = async (
   query,
   page = 1,
-  limit = 10,
+  limit = 1,
   category,
   minPrice,
   maxPrice
@@ -54,10 +54,11 @@ const searchProductsService = async (
   try {
     let offset = (page - 1) * limit;
 
-    // Build Elasticsearch query
+    // Build Elasticsearch query, including filters
     let esQuery = {
+      // Cho phép kết hợp nhiều điều kiện logic
       bool: {
-        must: [],
+        must: [], // Mảng các điều kiện tìm kiếm chính
         filter: [],
       },
     };
@@ -65,11 +66,15 @@ const searchProductsService = async (
     // Add text search if query is provided
     if (query && query.trim() !== "") {
       esQuery.bool.must.push({
+        // Tìm kiếm từ khóa trên nhiều trường cùng lúc
         multi_match: {
           query: query,
-          fields: ["name^2", "category"], // Boost name field
-          type: "best_fields",
-          fuzziness: "AUTO",
+          fields: ["name^2", "category"], // Tăng trọng số của trường name so với category
+          type: "best_fields", // Mặc định, tìm kiếm tốt nhất trên các trường được chỉ định
+          fuzziness: "AUTO", // Cho phép tìm kiếm mờ (gần đúng) để tự động điều chỉnh số lượng lỗi cho phép dựa trên độ dài của từ khóa người dùng nhập vào
+          // Độ dài 0 - 2 ký tự: Phải khớp chính xác (Exact match). Không cho phép sai lỗi nào.
+          // Độ dài 3 - 5 ký tự: Cho phép sai 1 lỗi (1 edit distance).
+          // Độ dài > 5 ký tự: Cho phép sai 2 lỗi (2 edit distance).
         },
       });
     } else {
@@ -116,9 +121,10 @@ const searchProductsService = async (
       sort: [{ createdAt: { order: "desc" } }],
     });
 
-    const hits = searchResult.hits;
-    const products = hits.hits.map((hit) => hit._source);
-    const total = hits.total.value;
+    const hits = searchResult.hits; // Lấy kết quả tìm kiếm
+    const products = hits.hits.map((hit) => hit._source); // Lấy dữ liệu sản phẩm từ kết quả
+    const total = hits.total.value; // Tổng số kết quả tìm được
+    // Các key khác như _index, _score, _id là metadata của ES, ta lọc bỏ đi để trả về dữ liệu sạch cho Frontend.
 
     return {
       EC: 0,
@@ -305,14 +311,15 @@ const getSimilarProductsService = async (productId) => {
         query: {
           more_like_this: {
             fields: ["name", "category"], // So sánh dựa trên Tên và Danh mục
-            like: [
+            like: [ // Tài liệu mẫu để so sánh
               {
                 _index: PRODUCTS_INDEX,
                 _id: productId.toString(),
               },
             ],
-            min_term_freq: 1,
-            min_doc_freq: 1,
+            min_term_freq: 1, // Một từ chỉ cần xuất hiện ít nhất 1 lần trong sản phẩm gốc là được coi là từ khóa để đi tìm
+            min_doc_freq: 1,  // Từ khóa đó chỉ cần xuất hiện trong ít nhất 1 tài liệu khác là được chấp nhận
+            // Vì dữ liệu sản phẩm thường ngắn (tên sản phẩm chỉ vài từ), nếu đặt cao quá thì ES sẽ lọc hết từ khóa và không tìm thấy gì
           },
         },
       },
