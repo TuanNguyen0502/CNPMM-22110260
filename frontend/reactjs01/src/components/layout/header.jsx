@@ -18,7 +18,7 @@ const Header = () => {
   // State to manage the currently selected menu item
   const [current, setCurrent] = useState("home");
   // Get cart items from CartContext
-  const { cartItems } = useCartContext();
+  const { cartItems, total } = useCartContext();
 
   const onClick = (e) => {
     setCurrent(e.key);
@@ -71,7 +71,11 @@ const Header = () => {
             label: (
               <Link to={"/cart"}>
                 Cart{" "}
-                <Badge count={cartItems.length} size="small" offset={[5, 0]} />
+                <Badge
+                  count={cartItems.length ? cartItems.length : total}
+                  size="small"
+                  offset={[5, 0]}
+                />
               </Link>
             ),
             key: "cart",
